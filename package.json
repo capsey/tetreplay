@@ -1,0 +1,30 @@
+{
+  "name": "tetreplay",
+  "version": "0.1.0",
+  "description": "",
+  "scripts": {
+    "dev": "webpack-dev-server --mode development --hot",
+    "build": "webpack --mode production",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/capsey/tetreplay.git"
+  },
+  "author": "capsey",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/capsey/tetreplay/issues"
+  },
+  "homepage": "https://github.com/capsey/tetreplay#readme",
+  "devDependencies": {
+    "ts-loader": "^9.4.2",
+    "typescript": "^4.9.4",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1"
+  },
+  "dependencies": {
+    "paper": "^0.12.17"
+  }
+}

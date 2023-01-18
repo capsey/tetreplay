@@ -1,0 +1,5 @@
+#game-board {
+    background-image: url('./board-background.png');
+    background-size: var(--cell-width);
+    image-rendering: pixelated;
+}
