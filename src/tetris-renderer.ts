@@ -6,14 +6,14 @@ import { BoardTheme, themes, onThemeLoaded } from './tetris-resources';
 import { Piece } from './tetris';
 
 class Block {
-    constructor(public raster: paper.Raster, public index: number, public rect: paper.Rectangle) { }
+    public constructor(public raster: paper.Raster, public index: number, public rect: paper.Rectangle) { }
 }
 
 export class BoardRenderer {
     private blocks: Matrix<Block>;
     private theme: BoardTheme;
 
-    constructor(layer: paper.Layer, board: Board, cellWidth: number, theme?: BoardTheme) {
+    public constructor(layer: paper.Layer, board: Board, cellWidth: number, theme?: BoardTheme) {
         // Assigning default theme if not provided
         this.theme = theme || themes[0];
 
@@ -42,12 +42,12 @@ export class BoardRenderer {
         board.forEach((x, y) => this.setBlock(x, y, board.getItem(x, y)));
     }
 
-    setTheme(theme: BoardTheme) {
+    public setTheme(theme: BoardTheme) {
         this.theme = theme;
         this.updateTextures();
     }
 
-    updateTextures() {
+    public updateTextures() {
         this.blocks.forEach((x, y) => {
             const block = this.blocks.getItem(x, y);
             const texture = this.theme.textures[block.index === 0 ? 0 : block.index - 1];
@@ -57,7 +57,7 @@ export class BoardRenderer {
         })
     }
 
-    setBlock(x: number, y: number, index: number) {
+    public setBlock(x: number, y: number, index: number) {
         const block = this.blocks.getItem(x, y);
 
         if (block.index === index) {
@@ -138,9 +138,5 @@ export class PieceRenderer {
             this.blocks[i].raster.fitBounds(rect);
             this.blocks[i].index = piece.color;
         }
-
-        this.blocks.forEach(block => {
-
-        });
     }
 }

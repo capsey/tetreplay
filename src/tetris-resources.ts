@@ -30,7 +30,7 @@ export class BoardTheme {
     public textures: ImageData[];
     public textureSize: number;
 
-    constructor(name: string, imageSource: string) {
+    public constructor(name: string, imageSource: string) {
         this.name = name;
         this.textures = unloadedTextures;
         this.textureSize = 1;
@@ -58,7 +58,7 @@ export class BoardTheme {
             });
     }
 
-    setTextures(textures: ImageData[], textureSize: number) {
+    public setTextures(textures: ImageData[], textureSize: number) {
         this.textures = textures;
         this.textureSize = textureSize;
 

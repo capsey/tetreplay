@@ -30,7 +30,7 @@ export class Matrix<T> {
 
     private data: T[];
 
-    constructor(rows: number, cols: number, data?: T[], callback?: (x: number, y: number) => T) {
+    public constructor(rows: number, cols: number, data?: T[], callback?: (x: number, y: number) => T) {
         this.rows = rows;
         this.cols = cols;
         this.data = data || new Array<T>(rows * cols);
@@ -38,17 +38,17 @@ export class Matrix<T> {
         if (callback) this.forEach((x, y) => this.data[this.cols * y + x] = callback(x, y));
     }
 
-    modify(callback: (setter: (x: number, y: number, value: T) => void) => void) {
+    public modify(callback: (setter: (x: number, y: number, value: T) => void) => void) {
         const data = [...this.data];
         callback((x, y, value) => data[this.cols * y + x] = value);
         return new Matrix(this.rows, this.cols, data);
     }
 
-    getItem(x: number, y: number): T {
+    public getItem(x: number, y: number): T {
         return this.data[this.cols * y + x];
     }
 
-    forEach(callback: (x: number, y: number) => void) {
+    public forEach(callback: (x: number, y: number) => void) {
         for (let y = 0; y < this.rows; y++) {
             for (let x = 0; x < this.cols; x++) {
                 callback(x, y);

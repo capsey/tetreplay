@@ -39,7 +39,7 @@ let ghostLayer = new paper.Layer();
 let ghostPiece = random.choose(pieces);
 let ghostRenderer = new PieceRenderer(ghostLayer, ghostPiece, cellWidth);
 
-ghostRenderer.opacity = 0.5;
+ghostRenderer.opacity = 0;
 
 // Placing logic
 let mouseX = 5;
@@ -79,6 +79,8 @@ canvas.onmousemove = (event) => {
         ghostPiece = finalPiece;
         ghostRenderer.setPiece(ghostPiece, cellWidth);
     }
+
+    ghostRenderer.opacity = finalPiece ? 0.5 : 0;
 };
 
 document.onkeydown = (event) => {
@@ -97,6 +99,8 @@ document.onkeydown = (event) => {
             ghostPiece = finalPiece;
             ghostRenderer.setPiece(ghostPiece, cellWidth);
         }
+
+        ghostRenderer.opacity = finalPiece ? 0.5 : 0;
     }
 };
 

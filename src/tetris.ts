@@ -4,13 +4,13 @@ import { RuleSet } from './tetris-rules';
 import { mod } from './utilities';
 
 export class Block {
-    constructor(public x: number, public y: number) { }
+    public constructor(public x: number, public y: number) { }
 
-    move(x: number, y: number): Block {
+    public move(x: number, y: number): Block {
         return new Block(this.x + x, this.y + y);
     }
 
-    equals(other: Block) {
+    public equals(other: Block) {
         return this.x === other.x && this.y === other.y;
     }
 }
