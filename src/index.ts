@@ -1,7 +1,10 @@
 import * as paper from 'paper';
 
-import * as random from './random';
-import { Board } from './board'
+import { random, Matrix, minBy } from './utilities';
+import { Board } from './tetris-board'
+import { pieces } from './tetris-tetrominoes';
+import { BoardRenderer, PieceRenderer } from './tetris-renderer';
+import { modernRules } from './tetris-rules';
 
 // Constants
 const rows = 22;
@@ -12,75 +15,75 @@ document.documentElement.style.setProperty('--board-rows', rows.toString());
 document.documentElement.style.setProperty('--board-cols', cols.toString());
 document.documentElement.style.setProperty('--cell-width', cellWidth + 'px');
 
-// Create the table element and add it to the DOM
-let boardCanvas = document.getElementById('game-board') as HTMLCanvasElement;
+// Initialize the board and add random blocks (DEBUG)
+let rules = modernRules;
+let board: Board = new Matrix<number>(rows, cols, undefined, (x, y) => {
+    return random.chance(0.1) ? random.range(1, 7) : 0
+});
 
-boardCanvas.style.cursor = "pointer";
-boardCanvas.width = cols * cellWidth;
-boardCanvas.height = rows * cellWidth;
+// Create board renderer
+let canvas = document.getElementById('game-board') as HTMLCanvasElement;
 
-paper.setup(boardCanvas);
+canvas.width = cols * cellWidth;
+canvas.height = rows * cellWidth;
 
-// Loading texture for each tetramino piece color
-let textures: paper.Raster[] = [];
-let image = new paper.Raster('./tetrominoes.png');
+paper.setup(canvas);
 
-image.remove();
-image.on('load', () => {
-    const pieceSize = new paper.Size(image.height, image.height);
+// Create board renderer
+let boardLayer = new paper.Layer();
+let boardRenderer = new BoardRenderer(boardLayer, board, cellWidth);
 
-    // Loop through each square
-    for (let i = 0; i < 7; i++) {
-        // Get the image data for the current square
-        let imageData = image.getImageData(new paper.Rectangle(new paper.Point(i * pieceSize.width, 0), pieceSize));
+// Create ghost piece
+let ghostLayer = new paper.Layer();
+let ghostPiece = random.choose(pieces);
+let ghostRenderer = new PieceRenderer(ghostLayer, ghostPiece, cellWidth);
 
-        // Create a new canvas to draw the image data on
-        let canvas = document.createElement('canvas');
-        canvas.width = pieceSize.width;
-        canvas.height = pieceSize.height;
+ghostRenderer.opacity = 0.5;
 
-        // Get the 2D context of the canvas
-        let context = canvas.getContext('2d');
+// Placing logic
+canvas.onmousemove = (event) => {
+    // Calculating mouse position in board coordinates
+    const bounds = canvas.getBoundingClientRect();
+    const x = (event.x - bounds.left) / cellWidth;
+    const y = (event.y - bounds.top) / cellWidth;
 
-        // Draw the image data on the canvas
-        context.putImageData(imageData, 0, 0);
+    // Finding closest location in 3x3 area
+    let potentialPieces = [];
 
-        // Create a new Raster object from the canvas
-        let piece = new paper.Raster(canvas);
-        piece.pivot = piece.bounds.topLeft;
-        piece.scale(cellWidth / image.height);
-        piece.remove();
+    for (let sx = -1; sx <= 1; sx++) {
+        for (let sy = -1; sy <= 1; sy++) {
+            const piece = ghostPiece.move(x + sx, y + sy);
 
-        textures.push(piece);
-    }
-
-    // Function to update piece on the canvas
-    let activePieces: (paper.Raster | null)[] = [];
-
-    function setPieceOnCanvas(x: number, y: number, index: number) {
-        // Calculate index in the list
-        const i = cols * y + x;
-
-        // Remove old sprite, if there was any
-        activePieces[i]?.remove();
-        activePieces[i] = null;
-
-        // Add new sprite on location, if not empty piece
-        if (index !== 0) {
-            let piece = textures[index - 1].clone();
-            piece.position = new paper.Point(x * cellWidth, y * cellWidth);
-            piece.smoothing = 'off';
-
-            activePieces[i] = piece;
-            paper.project.activeLayer.addChild(piece);
+            if (!rules.collides(piece, board)) {
+                potentialPieces.push(piece);
+            }
         }
     }
 
-    // Initialize the board and add random pieces
-    let board: Board = new Board(rows, cols, setPieceOnCanvas);
-
-    board.forEachIndex((x, y) => {
-        const index = random.chance(0.1) ? random.range(1, 7) : 0;
-        board.setPiece(x, y, index);
+    const finalPiece = minBy(potentialPieces, piece => {
+        const dx = piece.center.x - x;
+        const dy = piece.center.y - y;
+        return dx * dx + dy * dy;
     });
-});
+
+    if (finalPiece) {
+        ghostPiece = finalPiece;
+        ghostRenderer.setPiece(ghostPiece, cellWidth);
+    }
+};
+
+canvas.onmousedown = (event) => {
+    // Check whether can place the piece
+    if (!rules.collides(ghostPiece, board)) {
+        // Place all blocks of the piece into the board
+        board = board.modify(setter => {
+            ghostPiece.blocks.forEach(block => {
+                setter(block.x, block.y, ghostPiece.color + 1);
+                boardRenderer.setBlock(block.x, block.y, ghostPiece.color + 1);
+            });
+        });
+
+        // Generate new piece
+        ghostPiece = random.choose(pieces);
+    }
+};

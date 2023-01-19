@@ -1,4 +1,7 @@
 #game-board {
+    width: calc(var(--cell-width) * var(--board-cols));
+    height: calc(var(--cell-width) * var(--board-rows));
+    cursor: pointer;
     background-image: url('./board-background.png');
     background-size: var(--cell-width);
     image-rendering: pixelated;

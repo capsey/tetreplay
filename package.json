@@ -25,6 +25,7 @@
     "webpack-dev-server": "^4.11.1"
   },
   "dependencies": {
-    "paper": "^0.12.17"
+    "paper": "^0.12.17",
+    "typescript-collections": "^1.3.3"
   }
 }
