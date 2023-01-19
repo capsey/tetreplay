@@ -1,6 +1,7 @@
 import { Board } from './tetris-board';
 import { Queue } from 'typescript-collections';
 import { RuleSet } from './tetris-rules';
+import { mod } from './utilities';
 
 export class Block {
     constructor(public x: number, public y: number) { }
@@ -35,13 +36,24 @@ export class Piece {
 
     public shift(x: number, y: number): Piece {
         const rotations = this.rotations.map(blocks => blocks.map(block => block.move(x, y)));
-        return new Piece(rotations, this.center.move(x, y), this.color);
+        const piece = new Piece(rotations, this.center.move(x, y), this.color);
+        piece.currentRotation = this.currentRotation;
+
+        return piece;
     }
 
     public move(x: number, y: number): Piece {
         const sx = Math.round(x - this.center.x);
         const sy = Math.round(y - this.center.y);
+
         return this.shift(sx, sy);
+    }
+
+    public rotate(amount: number): Piece {
+        let piece = new Piece(this.rotations, this.center, this.color);
+        piece.currentRotation = mod(this.currentRotation + amount, 4);
+
+        return piece;
     }
 
     public equals(other: Piece): boolean {

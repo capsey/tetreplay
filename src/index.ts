@@ -5,6 +5,7 @@ import { Board } from './tetris-board'
 import { pieces } from './tetris-tetrominoes';
 import { BoardRenderer, PieceRenderer } from './tetris-renderer';
 import { modernRules } from './tetris-rules';
+import { Piece } from './tetris';
 
 // Constants
 const rows = 22;
@@ -41,18 +42,15 @@ let ghostRenderer = new PieceRenderer(ghostLayer, ghostPiece, cellWidth);
 ghostRenderer.opacity = 0.5;
 
 // Placing logic
-canvas.onmousemove = (event) => {
-    // Calculating mouse position in board coordinates
-    const bounds = canvas.getBoundingClientRect();
-    const x = (event.x - bounds.left) / cellWidth;
-    const y = (event.y - bounds.top) / cellWidth;
+let mouseX = 5;
+let mouseY = 0;
 
-    // Finding closest location in 3x3 area
+function findClosestPlacement(piece: Piece): Piece | null {
     let potentialPieces = [];
 
-    for (let sx = -1; sx <= 1; sx++) {
-        for (let sy = -1; sy <= 1; sy++) {
-            const piece = ghostPiece.move(x + sx, y + sy);
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            const piece = ghostPiece.move(mouseX + dx, mouseY + dy);
 
             if (!rules.collides(piece, board)) {
                 potentialPieces.push(piece);
@@ -60,19 +58,49 @@ canvas.onmousemove = (event) => {
         }
     }
 
-    const finalPiece = minBy(potentialPieces, piece => {
-        const dx = piece.center.x - x;
-        const dy = piece.center.y - y;
+    return minBy(potentialPieces, piece => {
+        const dx = piece.center.x - mouseX;
+        const dy = piece.center.y - mouseY;
         return dx * dx + dy * dy;
     });
+}
 
+canvas.onmousemove = (event) => {
+    // Calculating mouse position in board coordinates
+    const bounds = canvas.getBoundingClientRect();
+    mouseX = (event.x - bounds.left) / cellWidth;
+    mouseY = (event.y - bounds.top) / cellWidth;
+
+    // Finding closest valid placement
+    const finalPiece = findClosestPlacement(ghostPiece);
+
+    // If found, display on the board
     if (finalPiece) {
         ghostPiece = finalPiece;
         ghostRenderer.setPiece(ghostPiece, cellWidth);
     }
 };
 
-canvas.onmousedown = (event) => {
+document.onkeydown = (event) => {
+    if (event.key === 'r') {
+        // Prevent default behavious, e.g. scrolling or typing
+        event.preventDefault();
+
+        // Rotate the piece clockwise
+        ghostPiece = ghostPiece.rotate(1);
+
+        // Finding closest valid placement
+        const finalPiece = findClosestPlacement(ghostPiece);
+
+        // If found, display on the board
+        if (finalPiece) {
+            ghostPiece = finalPiece;
+            ghostRenderer.setPiece(ghostPiece, cellWidth);
+        }
+    }
+};
+
+canvas.onmousedown = (_) => {
     // Check whether can place the piece
     if (!rules.collides(ghostPiece, board)) {
         // Place all blocks of the piece into the board

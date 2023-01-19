@@ -20,7 +20,8 @@ export const modernRules: RuleSet = {
         return piece.shift(0, 1);
     },
     rotatePiece: function (piece: Piece, board: Board, direction: number): Piece {
-        throw new Error('Function not implemented.');
+        // TODO: Add SRS
+        return piece.rotate(direction);
     },
     collides: function (piece: Piece, board: Board): boolean {
         return !piece.blocks.every((value, index) => {

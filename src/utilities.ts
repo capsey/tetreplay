@@ -20,6 +20,10 @@ export function maxBy<T>(array: T[], fn: (value: T) => number): T | null {
     return array.reduce((max, x) => max && fn(max) >= fn(x) ? max : x, null);
 }
 
+export function mod(x: number, n: number) {
+    return ((x % n) + n) % n;
+}
+
 export class Matrix<T> {
     public rows: number;
     public cols: number;
