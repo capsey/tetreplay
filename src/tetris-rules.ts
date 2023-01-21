@@ -75,5 +75,6 @@ export function hardDrop(piece: Piece, board: Board): Piece {
 
 export function rotate(piece: Piece, board: Board, direction: number): Piece | null {
     // TODO: Add SRS
-    return rotatePiece(piece, direction);
+    const newPiece = rotatePiece(piece, direction);
+    return collides(getBlocks(newPiece), board) ? null : newPiece;
 }
