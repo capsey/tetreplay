@@ -20,7 +20,7 @@ export function maxBy<T>(array: T[], fn: (value: T) => number): T | null {
     return array.reduce((max, x) => max && fn(max) >= fn(x) ? max : x, null);
 }
 
-export function mod(x: number, n: number) {
+export function modulus(x: number, n: number) {
     return ((x % n) + n) % n;
 }
 
@@ -28,20 +28,20 @@ export class Matrix<T> {
     public rows: number;
     public cols: number;
 
-    private data: T[];
+    public data: T[];
 
-    public constructor(rows: number, cols: number, data?: T[], callback?: (x: number, y: number) => T) {
+    public constructor(rows: number, cols: number, callback?: (x: number, y: number) => T) {
         this.rows = rows;
         this.cols = cols;
-        this.data = data || new Array<T>(rows * cols);
+        this.data = new Array<T>(rows * cols);
 
         if (callback) this.forEach((x, y) => this.data[this.cols * y + x] = callback(x, y));
     }
 
     public modify(callback: (setter: (x: number, y: number, value: T) => void) => void) {
-        const data = [...this.data];
-        callback((x, y, value) => data[this.cols * y + x] = value);
-        return new Matrix(this.rows, this.cols, data);
+        const matrix = new Matrix<T>(this.rows, this.cols, (x, y) => this.getItem(x, y));
+        callback((x, y, value) => matrix.data[this.cols * y + x] = value);
+        return matrix;
     }
 
     public getItem(x: number, y: number): T {

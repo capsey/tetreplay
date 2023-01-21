@@ -1,19 +1,22 @@
 import * as paper from 'paper';
 
-import { Board } from './tetris-board';
 import { Matrix } from './utilities';
 import { BoardTheme, themes, onThemeLoaded } from './tetris-resources';
-import { Piece } from './tetris';
+import { Board, Piece } from './tetris-types';
+import { getBlocks, getSpawnPosition } from './tetris-tetrominoes';
+import { Input, applyInput, hardDrop } from './tetris-rules';
 
-class Block {
-    public constructor(public raster: paper.Raster, public index: number, public rect: paper.Rectangle) { }
+interface BlockSprite {
+    raster: paper.Raster;
+    rect: paper.Rectangle;
+    color: number;
 }
 
 export class BoardRenderer {
-    private blocks: Matrix<Block>;
+    private sprites: Matrix<BlockSprite>;
     private theme: BoardTheme;
 
-    public constructor(layer: paper.Layer, board: Board, cellWidth: number, theme?: BoardTheme) {
+    public constructor(layer: paper.Layer, rows: number, cols: number, cellSize: number, theme?: BoardTheme) {
         // Assigning default theme if not provided
         this.theme = theme || themes[0];
 
@@ -23,10 +26,10 @@ export class BoardRenderer {
         });
 
         // Creating each block raster
-        const size = new paper.Size(cellWidth, cellWidth);
+        const size = new paper.Size(cellSize, cellSize);
 
-        this.blocks = new Matrix(board.rows, board.cols, undefined, (x, y) => {
-            const position = new paper.Point(x * cellWidth, y * cellWidth);
+        this.sprites = new Matrix(rows, cols, (x, y) => {
+            const position = new paper.Point(x * cellSize, y * cellSize);
             const rect = new paper.Rectangle(position, size);
             const raster = new paper.Raster(this.theme.textures[0]);
 
@@ -36,10 +39,8 @@ export class BoardRenderer {
             raster.smoothing = 'off';
             raster.visible = false;
 
-            return new Block(raster, 0, rect);
+            return { raster, rect, color: -1 };
         });
-
-        board.forEach((x, y) => this.setBlock(x, y, board.getItem(x, y)));
     }
 
     public setTheme(theme: BoardTheme) {
@@ -48,40 +49,40 @@ export class BoardRenderer {
     }
 
     public updateTextures() {
-        this.blocks.forEach((x, y) => {
-            const block = this.blocks.getItem(x, y);
-            const texture = this.theme.textures[block.index === 0 ? 0 : block.index - 1];
+        this.sprites.forEach((x, y) => {
+            const sprite = this.sprites.getItem(x, y);
+            const texture = this.theme.textures[Math.max(sprite.color, 0)];
 
-            block.raster.setImageData(texture);
-            block.raster.fitBounds(block.rect);
+            sprite.raster.setImageData(texture);
+            sprite.raster.fitBounds(sprite.rect);
         })
     }
 
     public setBlock(x: number, y: number, index: number) {
-        const block = this.blocks.getItem(x, y);
+        const sprite = this.sprites.getItem(x, y);
 
-        if (block.index === index) {
+        if (sprite.color === index) {
             return;
-        } else if (index === 0) {
+        } else if (index < 0) {
             // Hide empty blocks
-            block.raster.visible = false;
+            sprite.raster.visible = false;
         } else {
             // Change color of the block
-            const texture = this.theme.textures[index - 1];
+            const texture = this.theme.textures[index];
 
-            block.raster.visible = true;
-            block.raster.setImageData(texture);
+            sprite.raster.visible = true;
+            sprite.raster.setImageData(texture);
         }
 
-        block.index = index;
+        sprite.color = index;
     }
 }
 
 export class PieceRenderer {
-    private blocks: Block[];
+    private sprites: BlockSprite[];
     private theme: BoardTheme;
 
-    public constructor(layer: paper.Layer, piece: Piece, cellWidth: number, theme?: BoardTheme) {
+    public constructor(layer: paper.Layer, piece: Piece, cellSize: number, opacity?: number, theme?: BoardTheme) {
         // Assigning default theme if not provided
         this.theme = theme || themes[0];
 
@@ -91,24 +92,25 @@ export class PieceRenderer {
         });
 
         // Creating each block raster
-        const size = new paper.Size(cellWidth, cellWidth);
+        const size = new paper.Size(cellSize, cellSize);
 
-        this.blocks = piece.blocks.map(block => {
-            const position = new paper.Point(block.x * cellWidth, block.y * cellWidth);
+        this.sprites = getBlocks(piece).map(block => {
+            const position = new paper.Point(block.x * cellSize, block.y * cellSize);
             const rect = new paper.Rectangle(position, size);
-            const raster = new paper.Raster(this.theme.textures[piece.color]);
+            const raster = new paper.Raster(this.theme.textures[piece.type]);
 
             layer.addChild(raster);
 
             raster.fitBounds(rect);
             raster.smoothing = 'off';
+            raster.opacity = opacity || 1;
 
-            return new Block(raster, piece.color, rect);
+            return { raster, color: piece.type, rect };
         });
     }
 
-    public set opacity(value: number) {
-        this.blocks.forEach(x => x.raster.opacity = value);
+    public set visible(value: boolean) {
+        this.sprites.forEach(sprite => sprite.raster.visible = value);
     }
 
     public setTheme(theme: BoardTheme) {
@@ -117,26 +119,57 @@ export class PieceRenderer {
     }
 
     public updateTextures() {
-        this.blocks.forEach(block => {
-            const texture = this.theme.textures[block.index];
+        this.sprites.forEach(sprite => {
+            const texture = this.theme.textures[sprite.color];
 
-            block.raster.setImageData(texture);
-            block.raster.fitBounds(block.rect);
+            sprite.raster.setImageData(texture);
+            sprite.raster.fitBounds(sprite.rect);
         })
     }
 
-    public setPiece(piece: Piece, cellWidth: number) {
+    public setPiece(piece: Piece, cellSize: number) {
         // Change color of the block
-        const texture = this.theme.textures[piece.color];
-        const size = new paper.Size(cellWidth, cellWidth);
+        const texture = this.theme.textures[piece.type];
+        const size = new paper.Size(cellSize, cellSize);
+        const blocks = getBlocks(piece);
 
-        for (let i = 0; i < piece.blocks.length; i++) {
-            const position = new paper.Point(piece.blocks[i].x * cellWidth, piece.blocks[i].y * cellWidth);
+        for (let i = 0; i < blocks.length; i++) {
+            const position = new paper.Point(blocks[i].x * cellSize, blocks[i].y * cellSize);
             const rect = new paper.Rectangle(position, size);
 
-            this.blocks[i].raster.setImageData(texture);
-            this.blocks[i].raster.fitBounds(rect);
-            this.blocks[i].index = piece.color;
+            this.sprites[i].raster.setImageData(texture);
+            this.sprites[i].raster.fitBounds(rect);
+            this.sprites[i].color = piece.type;
         }
+    }
+}
+
+export class PlayerRenderer {
+    public piece: Piece;
+
+    private fallingPiece: PieceRenderer;
+    private ghostPiece: PieceRenderer;
+
+    constructor(layer: paper.Layer, pieceType: number, board: Board, cellSize: number, theme?: BoardTheme) {
+        this.piece = getSpawnPosition(pieceType);
+
+        this.fallingPiece = new PieceRenderer(layer, this.piece, cellSize, 1, theme);
+        this.ghostPiece = new PieceRenderer(layer, hardDrop(this.piece, board), cellSize, 0.5, theme);
+    }
+
+    public set visible(value: boolean) {
+        this.fallingPiece.visible = value;
+        this.ghostPiece.visible = value;
+    }
+
+    public setPiece(piece: Piece, board: Board, cellSize: number) {
+        this.piece = piece;
+        this.fallingPiece.setPiece(piece, cellSize);
+        this.ghostPiece.setPiece(hardDrop(piece, board), cellSize);
+    }
+
+    public applyInput(input: Input, board: Board, cellSize: number) {
+        const piece = applyInput(this.piece, board, input);
+        if (piece) this.setPiece(piece, board, cellSize);
     }
 }

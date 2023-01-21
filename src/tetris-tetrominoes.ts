@@ -1,53 +1,96 @@
-import { Piece, Block } from "./tetris";
+import { Piece, Block } from './tetris-types';
 
-// Every piece in their starting positions
-export const iPiece = new Piece([
-    [new Block(3, 1), new Block(4, 1), new Block(5, 1), new Block(6, 1)],
-    [new Block(5, 0), new Block(5, 1), new Block(5, 2), new Block(5, 3)],
-    [new Block(3, 2), new Block(4, 2), new Block(5, 2), new Block(6, 2)],
-    [new Block(4, 0), new Block(4, 1), new Block(4, 2), new Block(4, 3)],
-], new Block(5, 2), 0);
+function createBlock(x: number, y: number): Block {
+    return { x, y };
+}
 
-export const jPiece = new Piece([
-    [new Block(3, 0), new Block(3, 1), new Block(4, 1), new Block(5, 1)],
-    [new Block(4, 0), new Block(4, 1), new Block(4, 2), new Block(5, 0)],
-    [new Block(3, 1), new Block(4, 1), new Block(5, 1), new Block(5, 2)],
-    [new Block(3, 2), new Block(4, 0), new Block(4, 1), new Block(4, 2)],
-], new Block(4.5, 1.5), 1);
+const pieces = [
+    [ // I piece
+        [createBlock(0, 0), createBlock(1, 0), createBlock(2, 0), createBlock(3, 0)],
+        [createBlock(2, -1), createBlock(2, 0), createBlock(2, 1), createBlock(2, 2)],
+        [createBlock(0, 1), createBlock(1, 1), createBlock(2, 1), createBlock(3, 1)],
+        [createBlock(1, -1), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
+    ],
+    [ // J piece
+        [createBlock(0, 0), createBlock(0, 1), createBlock(1, 1), createBlock(2, 1)],
+        [createBlock(1, 0), createBlock(1, 1), createBlock(1, 2), createBlock(2, 0)],
+        [createBlock(0, 1), createBlock(1, 1), createBlock(2, 1), createBlock(2, 2)],
+        [createBlock(0, 2), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
+    ],
+    [ // L piece
+        [createBlock(0, 1), createBlock(1, 1), createBlock(2, 1), createBlock(2, 0)],
+        [createBlock(1, 0), createBlock(1, 1), createBlock(1, 2), createBlock(2, 2)],
+        [createBlock(0, 1), createBlock(0, 2), createBlock(1, 1), createBlock(2, 1)],
+        [createBlock(0, 0), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
+    ],
+    [ // O piece
+        [createBlock(0, 0), createBlock(0, 1), createBlock(1, 0), createBlock(1, 1)],
+        [createBlock(0, 0), createBlock(0, 1), createBlock(1, 0), createBlock(1, 1)],
+        [createBlock(0, 0), createBlock(0, 1), createBlock(1, 0), createBlock(1, 1)],
+        [createBlock(0, 0), createBlock(0, 1), createBlock(1, 0), createBlock(1, 1)],
+    ],
+    [ // S piece
+        [createBlock(0, 1), createBlock(1, 1), createBlock(1, 0), createBlock(2, 0)],
+        [createBlock(1, 0), createBlock(1, 1), createBlock(2, 1), createBlock(2, 2)],
+        [createBlock(0, 2), createBlock(1, 2), createBlock(1, 1), createBlock(2, 1)],
+        [createBlock(0, 0), createBlock(0, 1), createBlock(1, 1), createBlock(1, 2)],
+    ],
+    [ // Z piece
+        [createBlock(0, 1), createBlock(1, 1), createBlock(1, 0), createBlock(2, 1)],
+        [createBlock(1, 0), createBlock(1, 1), createBlock(1, 2), createBlock(2, 1)],
+        [createBlock(0, 1), createBlock(1, 1), createBlock(1, 2), createBlock(2, 1)],
+        [createBlock(0, 1), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
+    ],
+    [ // T piece
+        [createBlock(0, 0), createBlock(1, 0), createBlock(1, 1), createBlock(2, 1)],
+        [createBlock(1, 2), createBlock(1, 1), createBlock(2, 1), createBlock(2, 0)],
+        [createBlock(0, 1), createBlock(1, 1), createBlock(1, 2), createBlock(2, 2)],
+        [createBlock(0, 2), createBlock(0, 1), createBlock(1, 1), createBlock(1, 0)],
+    ]];
 
-export const lPiece = new Piece([
-    [new Block(3, 1), new Block(4, 1), new Block(5, 1), new Block(5, 0)],
-    [new Block(4, 0), new Block(4, 1), new Block(4, 2), new Block(5, 2)],
-    [new Block(3, 1), new Block(3, 2), new Block(4, 1), new Block(5, 1)],
-    [new Block(3, 0), new Block(4, 0), new Block(4, 1), new Block(4, 2)],
-], new Block(4.5, 1.5), 2);
+const pieceCenters = pieces.map(rotations => {
+    return rotations.map(blocks => {
+        const x = blocks.reduce((acc, curr) => acc + curr.x, 0) / blocks.length;
+        const y = blocks.reduce((acc, curr) => acc + curr.y, 0) / blocks.length;
 
-export const oPiece = new Piece([
-    [new Block(4, 0), new Block(4, 1), new Block(5, 0), new Block(5, 1)],
-    [new Block(4, 0), new Block(4, 1), new Block(5, 0), new Block(5, 1)],
-    [new Block(4, 0), new Block(4, 1), new Block(5, 0), new Block(5, 1)],
-    [new Block(4, 0), new Block(4, 1), new Block(5, 0), new Block(5, 1)],
-], new Block(5, 1), 3);
+        return { x, y };
+    });
+});
 
-export const sPiece = new Piece([
-    [new Block(3, 1), new Block(4, 1), new Block(4, 0), new Block(5, 0)],
-    [new Block(4, 0), new Block(4, 1), new Block(5, 1), new Block(5, 2)],
-    [new Block(3, 2), new Block(4, 2), new Block(4, 1), new Block(5, 1)],
-    [new Block(3, 0), new Block(3, 1), new Block(4, 1), new Block(4, 2)],
-], new Block(4.5, 1.5), 4);
+export function getSpawnPosition(type: number): Piece {
+    return {
+        x: type !== 3 ? 3 : 4, // Only O piece spawns at 4
+        y: type !== 0 ? 0 : 1, // Only I piece spawns at 1
+        type,
+        rotation: 0,
+    };
+}
 
-export const zPiece = new Piece([
-    [new Block(3, 1), new Block(4, 1), new Block(4, 0), new Block(5, 1)],
-    [new Block(4, 0), new Block(4, 1), new Block(4, 2), new Block(5, 1)],
-    [new Block(3, 1), new Block(4, 1), new Block(4, 2), new Block(5, 1)],
-    [new Block(3, 1), new Block(4, 0), new Block(4, 1), new Block(4, 2)],
-], new Block(4.5, 1.5), 5);
+export function getBlocks(piece: Piece): Block[] {
+    const spawnBlocks = pieces[piece.type][piece.rotation];
 
-export const tPiece = new Piece([
-    [new Block(3, 0), new Block(4, 0), new Block(4, 1), new Block(5, 1)],
-    [new Block(4, 2), new Block(4, 1), new Block(5, 1), new Block(5, 0)],
-    [new Block(3, 1), new Block(4, 1), new Block(4, 2), new Block(5, 2)],
-    [new Block(3, 2), new Block(3, 1), new Block(4, 1), new Block(4, 0)],
-], new Block(4.5, 1.5), 6);
+    return spawnBlocks.map(block => {
+        return {
+            x: block.x + piece.x,
+            y: block.y + piece.y,
+        }
+    });
+}
 
-export const pieces = [iPiece, jPiece, lPiece, oPiece, sPiece, zPiece, tPiece];
+export function getCenter(piece: Piece) {
+    const spawnCenter = pieceCenters[piece.type][piece.rotation];
+
+    return {
+        x: spawnCenter.x + piece.x,
+        y: spawnCenter.y + piece.y,
+    };
+}
+
+export function pieceEquals(a: Piece, b: Piece) {
+    const compare = (a: Block, b: Block) => a.x !== b.x ? a.x - b.x : a.y - b.y;
+
+    const as = getBlocks(a).sort(compare);
+    const bs = getBlocks(b).sort(compare);
+
+    return as.every((x, i) => x.x === bs[i].x && x.y === bs[i].y);
+}
