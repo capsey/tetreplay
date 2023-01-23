@@ -1,8 +1,115 @@
+/* Typography */
+:root {
+    color: white;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: x-large;
+    line-height: 1.5rem
+}
+
+h1 {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 56px;
+    line-height: 100%;
+    margin: 16px 32px 16px 32px;
+}
+
+/* Main layout */
+body {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+#navbar {
+    width: 100%;
+    padding: 0px;
+    display: flex;
+    flex-direction: row;
+    background-color: #000000F0;
+}
+
+#container {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+/* Container layout */
+#board-container {
+    flex: 1;
+    height: 100%;
+    display: grid;
+    align-items: center;
+    justify-items: center;
+    background-color: #00000088;
+}
+
+#toolbar {
+    width: calc(56px + 12px);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #000000E0;
+}
+
+#settings {
+    flex: 1;
+    padding: 1rem;
+    background-color: #000000E0;
+}
+
+#piece-selection {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Graphics */
+:root {
+    background-image: url('https://images.unsplash.com/photo-1673217611194-579eee2a6ff8?auto=format&fit=crop&w=2070&q=80');
+    background-size: cover;
+}
+
 #game-board {
-    width: calc(var(--cell-width) * var(--board-cols));
-    height: calc(var(--cell-width) * var(--board-rows));
+    width: calc(var(--cell-width) * var(--board-cols) - 8px);
+    height: calc(var(--cell-width) * var(--board-rows) - 4px);
     cursor: pointer;
     background-image: url('./board-background.png');
     background-size: var(--cell-width);
     image-rendering: pixelated;
+    border: 4px solid white;
+    border-top: none;
+}
+
+/* Piece selection buttons */
+#toolbar input {
+    position: relative;
+    appearance: none;
+    cursor: pointer;
+    width: 56px;
+    height: 56px;
+    margin: 6px;
+    border: 3px solid white;
+}
+
+#toolbar input::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: var(--icon);
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+#toolbar input:checked::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color);
+    opacity: 0.5;
 }

@@ -7,15 +7,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tetreplay Editor</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Josefin+Sans&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" type="text/css" href="style.css" />
 
     <script src="../bundle.js" defer></script>
 </head>
 
 <body>
-    <canvas id="game-board"></canvas>
-    <div id="controls-container">
-        This is Tetreplay Editor!
+    <div id="navbar">
+        <h1>Tetreplay Editor</h1>
+    </div>
+    <div id="container">
+        <div id="board-container">
+            <canvas id="game-board" width="240" height="528"></canvas>
+        </div>
+        <form id="toolbar">
+            <input type="radio" name="piece" value="i-piece" checked />
+            <input type="radio" name="piece" value="j-piece" />
+            <input type="radio" name="piece" value="l-piece" />
+            <input type="radio" name="piece" value="o-piece" />
+            <input type="radio" name="piece" value="s-piece" />
+            <input type="radio" name="piece" value="t-piece" />
+            <input type="radio" name="piece" value="z-piece" />
+        </form>
+        <div id="settings">
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptate, beatae ut? Dicta excepturi veniam ab
+            illum adipisci natus sunt quaerat fugit repellendus dolorum vitae nostrum repudiandae eos optio, iste
+            quos.
+        </div>
     </div>
 </body>
 

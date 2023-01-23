@@ -1,3 +1,5 @@
+import { pieceColors } from "./tetris-tetrominoes";
+
 // Resources for themes that have not yet been loaded
 function createSolidTexture(color: string): ImageData {
     const canvas = new OffscreenCanvas(1, 1);
@@ -8,15 +10,7 @@ function createSolidTexture(color: string): ImageData {
     return context.getImageData(0, 0, 1, 1);
 }
 
-const unloadedTextures = [
-    createSolidTexture('#00ffff'),
-    createSolidTexture('#0000ff'),
-    createSolidTexture('#ffa500'),
-    createSolidTexture('#ffff00'),
-    createSolidTexture('#00ff00'),
-    createSolidTexture('#800080'),
-    createSolidTexture('#ff0000')
-];
+const unloadedTextures = pieceColors.map(color => createSolidTexture(color));
 
 // Global theme loaded event
 const eventListeners: ((theme: BoardTheme) => void)[] = [];

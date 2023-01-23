@@ -35,13 +35,13 @@ const pieces = [
         [createBlock(0, 2), createBlock(1, 2), createBlock(1, 1), createBlock(2, 1)],
         [createBlock(0, 0), createBlock(0, 1), createBlock(1, 1), createBlock(1, 2)],
     ],
-    [ // Z piece
+    [ // T piece
         [createBlock(0, 1), createBlock(1, 1), createBlock(1, 0), createBlock(2, 1)],
         [createBlock(1, 0), createBlock(1, 1), createBlock(1, 2), createBlock(2, 1)],
         [createBlock(0, 1), createBlock(1, 1), createBlock(1, 2), createBlock(2, 1)],
         [createBlock(0, 1), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
     ],
-    [ // T piece
+    [ // S piece
         [createBlock(0, 0), createBlock(1, 0), createBlock(1, 1), createBlock(2, 1)],
         [createBlock(1, 2), createBlock(1, 1), createBlock(2, 1), createBlock(2, 0)],
         [createBlock(0, 1), createBlock(1, 1), createBlock(1, 2), createBlock(2, 2)],
@@ -53,7 +53,7 @@ const pieceCenters = pieces.map(rotations => {
         const x = blocks.reduce((acc, curr) => acc + curr.x, 0) / blocks.length;
         const y = blocks.reduce((acc, curr) => acc + curr.y, 0) / blocks.length;
 
-        return { x, y };
+        return { x: x + 0.5, y: y + 0.5 };
     });
 });
 
@@ -94,3 +94,6 @@ export function pieceEquals(a: Piece, b: Piece) {
 
     return as.every((x, i) => x.x === bs[i].x && x.y === bs[i].y);
 }
+
+export const pieceNames = ['i-piece', 'j-piece', 'l-piece', 'o-piece', 's-piece', 't-piece', 'z-piece'];
+export const pieceColors = ['#00ffff', '#0000ff', '#ffa500', '#ffff00', '#00ff00', '#800080', '#ff0000'];

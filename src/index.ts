@@ -1,18 +1,20 @@
 import * as paper from 'paper';
 
-import { random, minBy, Matrix } from './utilities';
+import { minBy, Matrix } from './utilities';
 import { BoardRenderer, PieceRenderer, PlayerRenderer } from './tetris-renderer';
-import { Piece, rotatePiece, shiftPiece } from './tetris-types';
-import { Input, applyInput, collides } from './tetris-rules';
+import { Piece, rotatePiece } from './tetris-types';
+import { Input, collides } from './tetris-rules';
 import { Queue } from 'typescript-collections';
 import { WorkerArguments } from './worker';
-import { getBlocks, getCenter, getSpawnPosition } from './tetris-tetrominoes';
+import { getBlocks, getCenter, getSpawnPosition, pieceColors, pieceNames } from './tetris-tetrominoes';
 
 // Game paramenters
 const rows = 22;
 const cols = 10;
 const cellSize = 24;
 
+document.documentElement.style.setProperty('--board-rows', rows.toString());
+document.documentElement.style.setProperty('--board-cols', cols.toString());
 document.documentElement.style.setProperty('--cell-width', cellSize + 'px');
 
 // Create game board
@@ -34,13 +36,14 @@ let boardRenderer = new BoardRenderer(boardLayer, rows, cols, cellSize);
 const worker = new Worker(new URL('./worker.ts', import.meta.url));
 
 worker.onmessage = ({ data }: MessageEvent<Input[]>) => {
-    // Reset cursor
-    // canvas.style.cursor = 'not-allowed';
-
     // If no combination found, cancel
     if (data === null) {
+        // Reset the canvas
         animationPlaying = false;
         canvas.style.cursor = 'pointer';
+
+        // Update preview piece position
+        updatePiecePreview();
         return;
     }
 
@@ -53,13 +56,26 @@ worker.onmessage = ({ data }: MessageEvent<Input[]>) => {
     setTimeout(inputQueueTick, 100);
 };
 
-// Piece generation
+// Selected piece
 let selectedPiece = getSpawnPosition(0);
 
-function selectPiece(pieceType: number) {
-    // Generate new piece
-    selectedPiece = getSpawnPosition(pieceType);
-}
+const pieceSelectionForm = document.getElementById('toolbar') as HTMLFormElement;
+const pieceSelectionButtons = pieceSelectionForm.querySelectorAll('input[name="piece"]') as NodeListOf<HTMLInputElement>;
+
+pieceSelectionForm.reset();
+pieceSelectionButtons.forEach(button => {
+    // Get the type by name
+    const type = pieceNames.indexOf(button.value);
+
+    // Set styling properties
+    button.style.setProperty('--icon', `url("icons/${button.value}.svg")`);
+    button.style.setProperty('--color', pieceColors[type]);
+
+    // Set new selected piece when selected
+    button.addEventListener('change', () => {
+        selectedPiece = getSpawnPosition(type);
+    });
+});
 
 // Display input combination
 let playerLayer = new paper.Layer();
@@ -90,15 +106,12 @@ function inputQueueTick() {
             })
         });
 
-        // Generate random piece
-        selectPiece(random.range(0, 6));
-
         // Hide renderer
         playerRenderer.visible = false;
     }
 
-    // Request another tick if there are more
     if (!inputsQueue.isEmpty()) {
+        // Request another tick if there are more
         const delay = input === Input.HARD_DROP ? 500 :
             input === Input.SOFT_DROP ? 50 :
                 input === Input.ROTATE_180 ? 400 :
@@ -107,16 +120,32 @@ function inputQueueTick() {
 
         setTimeout(inputQueueTick, delay);
     } else {
+        // Reset the canvas
         animationPlaying = false;
         canvas.style.cursor = 'pointer';
+
+        // Update preview piece position
+        updatePiecePreview();
     }
 }
 
 // Piece insertion preview
 let previewLayer = new paper.Layer();
-let previewRenderer = new PieceRenderer(previewLayer, selectedPiece, cellSize);
+let previewRenderer = new PieceRenderer(previewLayer, selectedPiece, cellSize, 0.5);
 
 previewRenderer.visible = false;
+
+function updatePiecePreview() {
+    // Finding closest valid placement
+    const placement = findSelectedPiecePlacement();
+
+    // If found, display on the board
+    if (placement) {
+        previewRenderer.setPiece(placement, cellSize);
+    }
+
+    previewRenderer.visible = placement !== null && !animationPlaying;
+}
 
 // Input handling
 let mouseX = 5;
@@ -129,8 +158,9 @@ function findSelectedPiecePlacement(): Piece | null {
 
     let potentialPieces = [];
 
-    for (let dx = -2; dx <= 2; dx++) {
-        for (let dy = -2; dy <= 2; dy++) {
+    // Check positions in 4x4 square arount the mouse
+    for (let dx = -4; dx <= 4; dx++) {
+        for (let dy = -4; dy <= 4; dy++) {
             const shiftedPiece: Piece = {
                 ...selectedPiece,
                 x: sx + dx,
@@ -143,6 +173,7 @@ function findSelectedPiecePlacement(): Piece | null {
         }
     }
 
+    // From all valid ones, find the closest to the mouse
     return minBy(potentialPieces, piece => {
         let { x, y } = getCenter(piece);
         x -= mouseX;
@@ -152,24 +183,24 @@ function findSelectedPiecePlacement(): Piece | null {
     });
 }
 
-canvas.onmousemove = (event) => {
+const boardContainer = document.getElementById('board-container') as HTMLDivElement;
+
+boardContainer.onmousemove = (event) => {
     // Calculating mouse position in board coordinates
     const bounds = canvas.getBoundingClientRect();
     mouseX = (event.x - bounds.left) / cellSize;
     mouseY = (event.y - bounds.top) / cellSize;
 
-    // Finding closest valid placement
-    const placement = findSelectedPiecePlacement();
-
-    // If found, display on the board
-    if (placement) {
-        previewRenderer.setPiece(placement, cellSize);
-    }
-
-    previewRenderer.visible = placement !== null && !animationPlaying;
+    // Update preview piece position
+    updatePiecePreview();
 };
 
-window.onkeydown = (event) => {
+boardContainer.onmouseout = (_) => {
+    // Hide preview piece while not hovering over board
+    previewRenderer.visible = false;
+}
+
+document.onkeydown = (event) => {
     if (event.key === 'r') {
         // Prevent default behavious, e.g. scrolling or typing
         event.preventDefault();
@@ -177,22 +208,10 @@ window.onkeydown = (event) => {
         // Rotate the piece clockwise
         selectedPiece = rotatePiece(selectedPiece, 1);
 
-        // Finding closest valid placement
-        const placement = findSelectedPiecePlacement();
-
-        // If found, display on the board
-        if (placement) {
-            previewRenderer.setPiece(placement, cellSize);
-        }
-
-        previewRenderer.visible = placement !== null && !animationPlaying;
+        // Update preview piece position
+        updatePiecePreview();
     }
 };
-
-canvas.onmouseout = () => {
-    // Hide preview piece while not hovering over board
-    previewRenderer.visible = false;
-}
 
 canvas.onclick = () => {
     if (animationPlaying) return;
