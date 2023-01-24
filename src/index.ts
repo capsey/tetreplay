@@ -1,6 +1,6 @@
 import * as paper from 'paper';
 
-import { minBy, Matrix } from './utilities';
+import { Matrix } from './utilities';
 import { BoardRenderer, PieceRenderer, PlayerRenderer } from './tetris-renderer';
 import { Piece, rotatePiece } from './tetris-types';
 import { Input, collides } from './tetris-rules';
@@ -40,7 +40,7 @@ worker.onmessage = ({ data }: MessageEvent<Input[]>) => {
     if (data === null) {
         // Reset the canvas
         animationPlaying = false;
-        canvas.style.cursor = 'pointer';
+        boardContainer.style.cursor = 'pointer';
 
         // Update preview piece position
         updatePiecePreview();
@@ -58,7 +58,78 @@ worker.onmessage = ({ data }: MessageEvent<Input[]>) => {
 
 // Selected piece
 let selectedPiece = getSpawnPosition(0);
+let collisionMap: Piece[] = [];
+updateCollisionMap();
 
+function updateCollisionMap() {
+    // Update collision map
+    collisionMap = [];
+
+    // Check every position on the board
+    for (let x = -2; x < cols; x++) {
+        for (let y = -1; y < rows; y++) {
+            const shiftedPiece: Piece = { ...selectedPiece, x, y };
+
+            // Add if can be placed there
+            if (!collides(getBlocks(shiftedPiece), board)) {
+                collisionMap.push(shiftedPiece);
+            }
+        }
+    }
+}
+
+function placePieceIntoBoard(piece: Piece) {
+    const blocks = getBlocks(piece);
+
+    // Place piece into the board
+    board = board.modify(setter => {
+        blocks.forEach(block => {
+            const type = piece.type;
+
+            setter(block.x, block.y, type);
+            boardRenderer.setBlock(block.x, block.y, type);
+        })
+    });
+
+    // Clear lines if needed
+    if (clearLines) {
+        // Find lines affected by piece placement
+        const start = blocks.map(block => block.y).minBy(n => n);
+        const end = blocks.map(block => block.y).maxBy(n => n);
+
+        // Check these lines
+        for (let j = start; j <= end; j++) {
+            // Is there any empty cells in the line?
+            let clear = true;
+
+            for (let i = 0; i < board.cols; i++) {
+                if (board.getItem(i, j) < 0) {
+                    clear = false;
+                    break;
+                }
+            }
+
+            if (!clear) continue;
+
+            // If so, move all above rows one row downwards
+            board = board.modify(setter => {
+                for (let k = j - 1; k >= 0; k--) {
+                    for (let l = 0; l < board.cols; l++) {
+                        const type = board.getItem(l, k);
+
+                        setter(l, k + 1, type);
+                        boardRenderer.setBlock(l, k + 1, type);
+                    }
+                }
+            });
+        }
+    }
+
+    // Update collision map to account for board changes
+    updateCollisionMap();
+}
+
+// Toolbar
 const pieceSelectionForm = document.getElementById('toolbar') as HTMLFormElement;
 const pieceSelectionButtons = pieceSelectionForm.querySelectorAll('input[name="piece"]') as NodeListOf<HTMLInputElement>;
 
@@ -74,8 +145,27 @@ pieceSelectionButtons.forEach(button => {
     // Set new selected piece when selected
     button.addEventListener('change', () => {
         selectedPiece = getSpawnPosition(type);
+        updateCollisionMap();
     });
 });
+
+// Settings
+let clearLines = true;
+let onlyPossible = true;
+
+const settingsForm = document.getElementById('settings') as HTMLFormElement;
+
+settingsForm.reset();
+settingsForm.onchange = (event) => {
+    const target = event.target as HTMLInputElement;
+
+    // Update corresponding settings
+    if (target.name === 'clear-lines') {
+        clearLines = target.checked;
+    } else if (target.name === 'only-possible') {
+        onlyPossible = target.checked;
+    }
+};
 
 // Display input combination
 let playerLayer = new paper.Layer();
@@ -96,15 +186,9 @@ function inputQueueTick() {
     // Move the piece according to the input
     playerRenderer.applyInput(input, board, cellSize);
 
-    // If input is locking, lock the piece
     if (input === Input.HARD_DROP) {
-        // Place piece into the board
-        board = board.modify(setter => {
-            getBlocks(playerRenderer.piece).forEach(block => {
-                setter(block.x, block.y, playerRenderer.piece.type);
-                boardRenderer.setBlock(block.x, block.y, playerRenderer.piece.type)
-            })
-        });
+        // If input is locking, lock the piece
+        placePieceIntoBoard(playerRenderer.piece);
 
         // Hide renderer
         playerRenderer.visible = false;
@@ -122,7 +206,7 @@ function inputQueueTick() {
     } else {
         // Reset the canvas
         animationPlaying = false;
-        canvas.style.cursor = 'pointer';
+        boardContainer.style.cursor = 'pointer';
 
         // Update preview piece position
         updatePiecePreview();
@@ -144,7 +228,13 @@ function updatePiecePreview() {
         previewRenderer.setPiece(placement, cellSize);
     }
 
-    previewRenderer.visible = placement !== null && !animationPlaying;
+    if (placement && !animationPlaying) {
+        previewRenderer.visible = true;
+        boardContainer.style.cursor = 'pointer';
+    } else {
+        previewRenderer.visible = false;
+        boardContainer.style.cursor = 'inherit';
+    }
 }
 
 // Input handling
@@ -152,38 +242,21 @@ let mouseX = 5;
 let mouseY = 0;
 
 function findSelectedPiecePlacement(): Piece | null {
-    const center = getCenter(selectedPiece);
-    const sx = selectedPiece.x + Math.round(mouseX - center.x);
-    const sy = selectedPiece.y + Math.round(mouseY - center.y);
+    // Find the closest to the mouse
+    return collisionMap
+        .map(piece => {
+            let { x, y } = getCenter(piece);
+            x -= mouseX;
+            y -= mouseY;
 
-    let potentialPieces = [];
-
-    // Check positions in 4x4 square arount the mouse
-    for (let dx = -4; dx <= 4; dx++) {
-        for (let dy = -4; dy <= 4; dy++) {
-            const shiftedPiece: Piece = {
-                ...selectedPiece,
-                x: sx + dx,
-                y: sy + dy,
-            };
-
-            if (!collides(getBlocks(shiftedPiece), board)) {
-                potentialPieces.push(shiftedPiece);
-            }
-        }
-    }
-
-    // From all valid ones, find the closest to the mouse
-    return minBy(potentialPieces, piece => {
-        let { x, y } = getCenter(piece);
-        x -= mouseX;
-        y -= mouseY;
-
-        return x * x + y * y;
-    });
+            // Calculate Euclidean distance
+            return { piece, distance: x * x + y * y };
+        })
+        .filter(({ distance }) => distance < 5 * 5)
+        .minBy(({ distance }) => distance)?.piece;
 }
 
-const boardContainer = document.getElementById('board-container') as HTMLDivElement;
+let boardContainer = document.getElementById('board-container') as HTMLDivElement;
 
 boardContainer.onmousemove = (event) => {
     // Calculating mouse position in board coordinates
@@ -207,35 +280,42 @@ document.onkeydown = (event) => {
 
         // Rotate the piece clockwise
         selectedPiece = rotatePiece(selectedPiece, 1);
+        updateCollisionMap();
 
         // Update preview piece position
         updatePiecePreview();
     }
 };
 
-canvas.onclick = () => {
+boardContainer.onclick = () => {
     if (animationPlaying) return;
 
     const placement = findSelectedPiecePlacement();
 
-    // If found placement
+    // If placement exists
     if (placement) {
-        // Set loading cursor while algorithm is running
-        canvas.style.cursor = 'wait';
+        // If should only place possible piece positions
+        if (onlyPossible) {
+            // Set loading cursor while algorithm is running
+            boardContainer.style.cursor = 'wait';
 
-        // Remove piece preview
-        animationPlaying = true;
-        previewRenderer.visible = false;
+            // Remove piece preview
+            animationPlaying = true;
+            previewRenderer.visible = false;
 
-        // Start search algorithm on worker thread
-        const args: WorkerArguments = {
-            rows: board.rows,
-            cols: board.cols,
-            data: board.data,
-            initialPiece: selectedPiece,
-            finalPiece: placement
-        };
+            // Start search algorithm on worker thread
+            const args: WorkerArguments = {
+                rows: board.rows,
+                cols: board.cols,
+                data: board.data,
+                initialPiece: selectedPiece,
+                finalPiece: placement
+            };
 
-        worker.postMessage(args);
+            worker.postMessage(args);
+        } else {
+            // Otherwise, just place piece into the board
+            placePieceIntoBoard(placement);
+        }
     }
 };

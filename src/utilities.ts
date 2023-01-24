@@ -12,12 +12,19 @@ export const random = {
 
 };
 
-export function minBy<T>(array: T[], fn: (value: T) => number): T | null {
-    return array.reduce((min, x) => min && fn(min) <= fn(x) ? min : x, null);
+declare global {
+    interface Array<T> {
+        minBy(fn: (value: T) => number): T | null;
+        maxBy(fn: (value: T) => number): T | null;
+    }
 }
 
-export function maxBy<T>(array: T[], fn: (value: T) => number): T | null {
-    return array.reduce((max, x) => max && fn(max) >= fn(x) ? max : x, null);
+Array.prototype.minBy = function <T>(this: Array<T>, fn: (value: T) => number): T | null {
+    return this.reduce((min, x) => min && fn(min) <= fn(x) ? min : x, null);
+}
+
+Array.prototype.maxBy = function <T>(this: Array<T>, fn: (value: T) => number): T | null {
+    return this.reduce((max, x) => max && fn(max) >= fn(x) ? max : x, null);
 }
 
 export function modulus(x: number, n: number) {

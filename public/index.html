@@ -18,12 +18,9 @@
 
 <body>
     <div id="navbar">
-        <h1>Tetreplay Editor</h1>
+        <h1 id="logo">Tetreplay Editor</h1>
     </div>
     <div id="container">
-        <div id="board-container">
-            <canvas id="game-board" width="240" height="528"></canvas>
-        </div>
         <form id="toolbar">
             <input type="radio" name="piece" value="i-piece" checked />
             <input type="radio" name="piece" value="j-piece" />
@@ -33,10 +30,23 @@
             <input type="radio" name="piece" value="t-piece" />
             <input type="radio" name="piece" value="z-piece" />
         </form>
-        <div id="settings">
+        <div id="board-container">
+            <canvas id="game-board" width="240" height="528"></canvas>
+        </div>
+        <div id="settings-container">
             Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptate, beatae ut? Dicta excepturi veniam ab
             illum adipisci natus sunt quaerat fugit repellendus dolorum vitae nostrum repudiandae eos optio, iste
             quos.
+            <form id="settings">
+                <label>
+                    <input type="checkbox" name="clear-lines" checked />
+                    Automatically clear lines
+                </label>
+                <label>
+                    <input type="checkbox" name="only-possible" checked />
+                    Only possible placements
+                </label>
+            </form>
         </div>
     </div>
 </body>
