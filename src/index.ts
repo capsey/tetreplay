@@ -1,12 +1,11 @@
 import * as paper from 'paper';
+import { Queue } from 'typescript-collections';
 
 import { Matrix } from './utilities';
-import { BoardRenderer, PieceRenderer, PlayerRenderer } from './tetris-renderer';
-import { Piece, rotatePiece } from './tetris-types';
-import { Input, collides } from './tetris-rules';
-import { Queue } from 'typescript-collections';
-import { WorkerArguments } from './worker';
-import { getBlocks, getCenter, getSpawnPosition, pieceColors, pieceNames } from './tetris-tetrominoes';
+import { BoardRenderer, PieceRenderer, PlayerRenderer } from './view/renderers';
+import { WorkerArguments, Piece, rotatePiece } from './game/types';
+import { Input, collides } from './game/rules';
+import { getBlocks, getCenter, getSpawnPosition, pieceColors, pieceNames } from './game/pieces';
 
 // Game paramenters
 const rows = 22;

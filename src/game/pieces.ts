@@ -1,4 +1,4 @@
-import { Piece, Block } from './tetris-types';
+import { Piece, Block } from './types';
 
 function createBlock(x: number, y: number): Block {
     return { x, y };

@@ -1,5 +1,15 @@
-import { Matrix, modulus } from './utilities';
+import { Matrix } from '../utilities';
 
+// Arguments passed to the worker
+export interface WorkerArguments {
+    rows: number,
+    cols: number,
+    data: number[],
+    initialPiece: Piece,
+    finalPiece: Piece,
+}
+
+// Game types
 export type Board = Matrix<number>;
 
 export interface Block {
@@ -14,6 +24,7 @@ export interface Piece {
     rotation: number
 }
 
+// Utility functions
 export function shiftPiece(piece: Piece, dx: number, dy: number): Piece {
     return {
         ...piece,
@@ -25,6 +36,6 @@ export function shiftPiece(piece: Piece, dx: number, dy: number): Piece {
 export function rotatePiece(piece: Piece, amount: number): Piece {
     return {
         ...piece,
-        rotation: modulus(piece.rotation + amount, 4),
+        rotation: (piece.rotation + amount + 4) % 4,
     };
 }

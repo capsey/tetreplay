@@ -1,5 +1,5 @@
-import { getBlocks } from './tetris-tetrominoes';
-import { Block, Board, Piece, shiftPiece, rotatePiece } from './tetris-types';
+import { getBlocks } from './pieces';
+import { Block, Board, Piece, shiftPiece, rotatePiece } from './types';
 
 export enum Input {
     SHIFT_RIGHT,

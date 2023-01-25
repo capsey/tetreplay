@@ -1,14 +1,6 @@
-import { findInputs } from './tetris-algorithm';
-import { Piece } from './tetris-types';
+import { findInputs } from './algorithms';
+import { WorkerArguments } from './game/types';
 import { Matrix } from './utilities';
-
-export interface WorkerArguments {
-    rows: number,
-    cols: number,
-    data: number[],
-    initialPiece: Piece,
-    finalPiece: Piece,
-}
 
 onmessage = ({ data: { rows, cols, data, initialPiece, finalPiece } }: MessageEvent<WorkerArguments>) => {
     // Recreate the board

@@ -1,5 +1,5 @@
+// Utility functions for generating random values
 export const random = {
-
     range: function (min: number, max: number): number {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     },
@@ -9,9 +9,9 @@ export const random = {
     choose: function <T>(array: T[]): T {
         return array[Math.floor(Math.random() * array.length)];
     }
-
 };
 
+// Utility functions for built-in Array type
 declare global {
     interface Array<T> {
         minBy(fn: (value: T) => number): T | null;
@@ -27,10 +27,7 @@ Array.prototype.maxBy = function <T>(this: Array<T>, fn: (value: T) => number): 
     return this.reduce((max, x) => max && fn(max) >= fn(x) ? max : x, null);
 }
 
-export function modulus(x: number, n: number) {
-    return ((x % n) + n) % n;
-}
-
+// Two dimensional array of generic type
 export class Matrix<T> {
     public rows: number;
     public cols: number;

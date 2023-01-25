@@ -1,7 +1,8 @@
 import { Queue } from 'typescript-collections';
-import { Board, Piece, shiftPiece } from './tetris-types';
-import { Input, collides, applyInput } from './tetris-rules';
-import { getBlocks, pieceEquals } from './tetris-tetrominoes';
+
+import { Board, Piece, shiftPiece } from './game/types';
+import { Input, collides, applyInput } from './game/rules';
+import { getBlocks, pieceEquals } from './game/pieces';
 
 export function findInputs(initialPlacement: Piece, finalPlacement: Piece, board: Board): Input[] | null {
     // Check if the parameters are valid

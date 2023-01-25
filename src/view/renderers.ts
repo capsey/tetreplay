@@ -1,10 +1,10 @@
 import * as paper from 'paper';
 
-import { Matrix } from './utilities';
-import { BoardTheme, themes, onThemeLoaded } from './tetris-resources';
-import { Board, Piece } from './tetris-types';
-import { getBlocks, getSpawnPosition } from './tetris-tetrominoes';
-import { Input, applyInput, hardDrop } from './tetris-rules';
+import { Matrix } from '../utilities';
+import { BoardTheme, themes, onThemeLoaded } from './resources';
+import { Board, Piece } from '../game/types';
+import { getBlocks, getSpawnPosition } from '../game/pieces';
+import { Input, applyInput, hardDrop } from '../game/rules';
 
 interface BlockSprite {
     raster: paper.Raster;

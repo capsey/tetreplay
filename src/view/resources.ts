@@ -1,4 +1,4 @@
-import { pieceColors } from "./tetris-tetrominoes";
+import { pieceColors } from '../game/pieces';
 
 // Resources for themes that have not yet been loaded
 function createSolidTexture(color: string): ImageData {
