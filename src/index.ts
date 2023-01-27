@@ -20,7 +20,7 @@ document.documentElement.style.setProperty('--cell-width', cellSize + 'px');
 let board = new Matrix<number>(rows, cols, () => -1);
 
 // Setup Paper.js
-let canvas = document.getElementById('game-board') as HTMLCanvasElement;
+const canvas = document.getElementById('game-board') as HTMLCanvasElement;
 
 canvas.width = cols * cellSize;
 canvas.height = rows * cellSize;
@@ -28,8 +28,8 @@ canvas.height = rows * cellSize;
 paper.setup(canvas);
 
 // Create board renderer
-let boardLayer = new paper.Layer();
-let boardRenderer = new BoardRenderer(boardLayer, rows, cols, cellSize);
+const boardLayer = new paper.Layer();
+const boardRenderer = new BoardRenderer(boardLayer, rows, cols, cellSize);
 
 // Create worker
 const worker = new Worker(new URL('./worker.ts', import.meta.url));
@@ -167,14 +167,14 @@ settingsForm.onchange = (event) => {
 };
 
 // Display input combination
-let playerLayer = new paper.Layer();
-let playerRenderer = new PlayerRenderer(playerLayer, 0, board, cellSize);
+const playerLayer = new paper.Layer();
+const playerRenderer = new PlayerRenderer(playerLayer, 0, board, cellSize);
 
 playerRenderer.visible = false;
 
 // Input animation
 let animationPlaying = false;
-let inputsQueue = new Queue<Input>();
+const inputsQueue = new Queue<Input>();
 
 function inputQueueTick() {
     // Retrieve input to perform if any
@@ -213,8 +213,8 @@ function inputQueueTick() {
 }
 
 // Piece insertion preview
-let previewLayer = new paper.Layer();
-let previewRenderer = new PieceRenderer(previewLayer, selectedPiece, cellSize, 0.5);
+const previewLayer = new paper.Layer();
+const previewRenderer = new PieceRenderer(previewLayer, selectedPiece, cellSize, 0.5);
 
 previewRenderer.visible = false;
 
@@ -255,7 +255,7 @@ function findSelectedPiecePlacement(): Piece | null {
         .minBy(({ distance }) => distance)?.piece;
 }
 
-let boardContainer = document.getElementById('board-container') as HTMLDivElement;
+const boardContainer = document.getElementById('board-container') as HTMLDivElement;
 
 boardContainer.onmousemove = (event) => {
     // Calculating mouse position in board coordinates
@@ -273,13 +273,27 @@ boardContainer.onmouseout = (_) => {
 }
 
 document.onkeydown = (event) => {
-    if (event.key === 'r') {
+    if (event.key === 'e' || event.key === 'q' || event.key === 'w') {
         // Prevent default behavious, e.g. scrolling or typing
         event.preventDefault();
 
-        // Rotate the piece clockwise
-        selectedPiece = rotatePiece(selectedPiece, 1);
+        // Get rotation direction
+        const direction = event.key === 'e' ? 1 : event.key === 'q' ? -1 : 2;
+
+        // Rotate the piece
+        selectedPiece = rotatePiece(selectedPiece, direction);
         updateCollisionMap();
+
+        // Update preview piece position
+        updatePiecePreview();
+    } else if (/^[1-7]$/.test(event.key)) {
+        // Parse number key into piece name
+        const index = parseInt(event.key) - 1;
+        const piece = pieceNames[index];
+
+        // Set selected piece
+        const button = pieceSelectionForm.querySelector(`input[value="${piece}"]`) as HTMLInputElement;
+        button.click();
 
         // Update preview piece position
         updatePiecePreview();
