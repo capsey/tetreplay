@@ -19,20 +19,27 @@ export class Matrix<T> {
     public rows: number;
     public cols: number;
 
-    public data: T[];
+    private data: T[];
 
-    public constructor(rows: number, cols: number, callback?: (x: number, y: number) => T) {
+    public constructor(rows: number, cols: number, data?: T[] | T) {
         this.rows = rows;
         this.cols = cols;
-        this.data = new Array<T>(rows * cols);
 
-        if (callback) this.forEach((x, y) => this.data[this.cols * y + x] = callback(x, y));
+        if (Array.isArray(data)) {
+            this.data = data;
+        } else {
+            this.data = new Array(rows * cols);
+
+            if (data) this.forEach((x, y) => this.setItem(x, y, data));
+        }
     }
 
-    public modify(callback: (setter: (x: number, y: number, value: T) => void) => void) {
-        const matrix = new Matrix<T>(this.rows, this.cols, (x, y) => this.getItem(x, y));
-        callback((x, y, value) => matrix.data[this.cols * y + x] = value);
-        return matrix;
+    public copy(): Matrix<T> {
+        return new Matrix(this.rows, this.cols, this.data);
+    }
+
+    public setItem(x: number, y: number, value: T) {
+        this.data[this.cols * y + x] = value;
     }
 
     public getItem(x: number, y: number): T {

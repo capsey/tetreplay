@@ -26,20 +26,12 @@
         cursor: pointer;
         width: 56px;
         height: 56px;
+        background-image: var(--icon);
+        background-size: contain;
         border: 3px solid white;
         border-right-style: dashed;
         border-bottom-style: dashed;
         margin: 0;
-    }
-
-    input::after {
-        content: "";
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-image: var(--icon);
-        background-size: contain;
-        background-repeat: no-repeat;
     }
 
     input:hover,
@@ -49,36 +41,36 @@
 
     input[value="i-piece"] {
         --icon: url("assets/i-piece-icon.svg");
-        --color: #00ffff50;
+        --color: #00bcbc50;
     }
 
     input[value="j-piece"] {
         --icon: url("assets/j-piece-icon.svg");
-        --color: #0000ff50;
+        --color: #0000d250;
     }
 
     input[value="l-piece"] {
         --icon: url("assets/l-piece-icon.svg");
-        --color: #ffa50050;
+        --color: #d33c0050;
     }
 
     input[value="o-piece"] {
         --icon: url("assets/o-piece-icon.svg");
-        --color: #ffff0050;
+        --color: #b3b30050;
     }
 
     input[value="s-piece"] {
         --icon: url("assets/s-piece-icon.svg");
-        --color: #00ff0050;
+        --color: #00ac0050;
     }
 
     input[value="t-piece"] {
         --icon: url("assets/t-piece-icon.svg");
-        --color: #80008050;
+        --color: #7e007e50;
     }
 
     input[value="z-piece"] {
         --icon: url("assets/z-piece-icon.svg");
-        --color: #ff000050;
+        --color: #95000050;
     }
 </style>
