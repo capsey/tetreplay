@@ -1,12 +1,14 @@
 <script lang="ts">
-    export let rows, cols, cellSize;
+    export let rows: number;
+    export let cols: number;
+    export let cellSize: number;
 </script>
 
 <main>
     <canvas
         style:--rows={rows}
         style:--cols={cols}
-        style:--cell-size={cellSize}
+        style:--cell-size="{cellSize}px"
     />
 </main>
 

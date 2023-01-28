@@ -4,7 +4,7 @@
 
 <label>
     <input type="checkbox" {checked} />
-    <p>Only possible placements</p>
+    <p><slot /></p>
 </label>
 
 <style>
@@ -17,6 +17,7 @@
 
     p {
         margin: 10px;
+        user-select: none;
     }
 
     input {
