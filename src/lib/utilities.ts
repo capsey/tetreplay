@@ -35,7 +35,7 @@ export class Matrix<T> {
     }
 
     public copy(): Matrix<T> {
-        return new Matrix(this.rows, this.cols, this.data);
+        return new Matrix(this.rows, this.cols, [...this.data]);
     }
 
     public setItem(x: number, y: number, value: T) {
@@ -46,10 +46,10 @@ export class Matrix<T> {
         return this.data[this.cols * y + x];
     }
 
-    public forEach(callback: (x: number, y: number) => void) {
+    public forEach(callback: (x: number, y: number, value: T) => void) {
         for (let y = 0; y < this.rows; y++) {
             for (let x = 0; x < this.cols; x++) {
-                callback(x, y);
+                callback(x, y, this.getItem(x, y));
             }
         }
     }

@@ -1,4 +1,18 @@
-<form>
+<script lang="ts">
+    import { createEventDispatcher } from "svelte";
+    import { pieceNames } from "./pieces";
+
+    const dispatch = createEventDispatcher();
+
+    function onFormChange({ target }) {
+        const color = pieceNames.findIndex((x) => x === target.value);
+        console.log(color);
+
+        dispatch("selected", color);
+    }
+</script>
+
+<form on:change={onFormChange}>
     <input type="radio" name="piece" value="i-piece" checked />
     <input type="radio" name="piece" value="j-piece" />
     <input type="radio" name="piece" value="l-piece" />

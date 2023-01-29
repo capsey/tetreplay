@@ -1,8 +1,16 @@
 <script lang="ts">
   import Board from "./lib/Board.svelte";
   import NavigationBar from "./lib/NavigationBar.svelte";
+  import { getSpawnPosition } from "./lib/pieces";
   import SettingsTab from "./lib/SettingsTab.svelte";
   import Toolbar from "./lib/Toolbar.svelte";
+
+  let piece = getSpawnPosition(0);
+
+  function onPieceSelected(event) {
+    const color = event.detail;
+    piece = getSpawnPosition(color);
+  }
 </script>
 
 <main>
@@ -11,8 +19,8 @@
   <NavigationBar />
 
   <div id="container">
-    <Toolbar />
-    <Board rows={22} cols={10} cellSize={24} />
+    <Toolbar on:selected={onPieceSelected} />
+    <Board rows={22} cols={10} cellSize={24} {piece} />
     <SettingsTab />
   </div>
 </main>
