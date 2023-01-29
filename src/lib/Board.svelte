@@ -4,9 +4,9 @@
 
     import { Matrix } from "./utilities";
     import { BoardRenderer, getTheme, PieceRenderer } from "./renderers";
-    import type { Piece } from "./types";
+    import { rotatePiece, type Piece } from "./types";
     import { collides } from "./rules";
-    import { getBlocks, getCenter, getSpawnPosition } from "./pieces";
+    import { getBlocks, getCenter } from "./pieces";
 
     // Component props
     export let rows: number;
@@ -25,11 +25,14 @@
     }
 
     // Game board
-    let board = new Matrix<number>(rows, cols, -1);
-    let collisionMap: Piece[] = [];
+    let board: Matrix<number>;
+    let collisionMap: Piece[];
 
-    $: {
+    $: board = new Matrix<number>(rows, cols, -1);
+
+    $: if (board) {
         collisionMap = [];
+
         // Check every position on the board
         for (let x = -2; x < cols; x++) {
             for (let y = -1; y < rows; y++) {
@@ -46,14 +49,18 @@
     // Setup canvas rendering
     let boardRenderer: BoardRenderer;
     let previewRenderer: PieceRenderer;
+    let previewPiece: Piece;
 
-    let previewPiece = piece;
+    function hidePreview() {
+        previewPiece = null;
+    }
 
     onMount(() => {
         paper.setup(canvas);
 
         boardRenderer = new BoardRenderer(rows, cols, cellSize);
-        previewRenderer = new PieceRenderer(piece, cellSize, 1);
+        previewRenderer = new PieceRenderer(piece, cellSize, 0.5);
+        previewRenderer.visible = false;
 
         getTheme("default-tetrominoes.png").then((theme) => {
             boardRenderer.setTheme(theme);
@@ -70,8 +77,8 @@
             previewRenderer.setPiece(previewPiece, cellSize);
         }
 
-        const visible = previewPiece;
-        previewRenderer.visible = visible ? true : false;
+        const visible = !!previewPiece;
+        previewRenderer.visible = visible;
         mouseStyle = visible ? "pointer" : "inherit";
     }
 
@@ -85,29 +92,69 @@
         mouseY = (y - canvasY) / cellSize;
     }
 
-    $: {
-        // Find valid placement closest to the mouse
-        const placement = collisionMap
-            .map((piece) => {
-                let { x, y } = getCenter(piece);
-                x -= mouseX;
-                y -= mouseY;
-
-                // Calculate Euclidean distance
-                return { piece, distance: x * x + y * y };
-            })
-            .filter(({ distance }) => distance < 5 * 5)
-            .min(({ distance }) => distance)?.piece;
-
-        // If found, display on the board
-        previewPiece = placement;
+    function onMouseDown(event: MouseEvent) {
+        if (event.button === 0) {
+            placePiece(previewPiece);
+        } else if (event.button === 2) {
+            piece = rotatePiece(piece, 1);
+        }
     }
+
+    function onKeyDown(event: KeyboardEvent) {
+        function boundaryClamp(x: number, max: number) {
+            const result = Math.min(Math.max(Math.floor(x), 0), max - 1) + 0.5;
+            console.log(result);
+
+            return result;
+        }
+
+        console.log(mouseX);
+        if (event.key === "Enter") {
+            placePiece(previewPiece);
+        } else if (event.key === "r") {
+            piece = rotatePiece(piece, 1);
+        } else if (event.key === "ArrowLeft") {
+            mouseX = boundaryClamp(mouseX - 1, cols);
+        } else if (event.key === "ArrowRight") {
+            mouseX = boundaryClamp(mouseX + 1, cols);
+        } else if (event.key === "ArrowUp") {
+            mouseY = boundaryClamp(mouseY - 1, rows);
+        } else if (event.key === "ArrowDown") {
+            mouseY = boundaryClamp(mouseY + 1, rows);
+        }
+    }
+
+    function placePiece(piece: Piece) {
+        if (!piece) return;
+
+        getBlocks(piece).forEach((block) =>
+            board.setItem(block.x, block.y, piece.type)
+        );
+        board = board;
+    }
+
+    $: previewPiece = collisionMap
+        .map((piece) => {
+            let { x, y } = getCenter(piece);
+            x -= mouseX;
+            y -= mouseY;
+
+            // Calculate Euclidean distance
+            return { piece, distance: x * x + y * y };
+        })
+        .filter(({ distance }) => distance < 5 * 5)
+        .min(({ distance }) => distance)?.piece;
 </script>
 
+<svelte:window on:keydown|preventDefault={onKeyDown} />
+
+<!-- svelte-ignore a11y-click-events-have-key-events -->
 <main
     on:mousemove={updateMousePosition}
-    on:mouseout={() => (previewPiece = null)}
-    on:blur={() => (previewPiece = null)}
+    on:mouseout={hidePreview}
+    on:mousedown={onMouseDown}
+    on:contextmenu|preventDefault
+    on:blur={hidePreview}
     style:cursor={mouseStyle}
 >
     <canvas

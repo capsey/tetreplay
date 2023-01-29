@@ -4,22 +4,31 @@
 
     const dispatch = createEventDispatcher();
 
-    function onFormChange({ target }) {
-        const color = pieceNames.findIndex((x) => x === target.value);
-        console.log(color);
+    let selected = "i-piece";
 
-        dispatch("selected", color);
+    $: if (selected) {
+        const index = pieceNames.findIndex((x) => x === selected);
+        dispatch("selected", index);
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+        if (/^[1-7]$/.test(event.key)) {
+            const index = parseInt(event.key) - 1;
+            selected = pieceNames[index];
+        }
     }
 </script>
 
-<form on:change={onFormChange}>
-    <input type="radio" name="piece" value="i-piece" checked />
-    <input type="radio" name="piece" value="j-piece" />
-    <input type="radio" name="piece" value="l-piece" />
-    <input type="radio" name="piece" value="o-piece" />
-    <input type="radio" name="piece" value="s-piece" />
-    <input type="radio" name="piece" value="t-piece" />
-    <input type="radio" name="piece" value="z-piece" />
+<svelte:window on:keydown={onKeyDown} />
+
+<form>
+    <input type="radio" name="piece" value="i-piece" bind:group={selected} />
+    <input type="radio" name="piece" value="j-piece" bind:group={selected} />
+    <input type="radio" name="piece" value="l-piece" bind:group={selected} />
+    <input type="radio" name="piece" value="o-piece" bind:group={selected} />
+    <input type="radio" name="piece" value="s-piece" bind:group={selected} />
+    <input type="radio" name="piece" value="t-piece" bind:group={selected} />
+    <input type="radio" name="piece" value="z-piece" bind:group={selected} />
 </form>
 
 <style>
