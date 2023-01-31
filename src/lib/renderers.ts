@@ -66,11 +66,11 @@ export class BoardRenderer {
             } else {
                 // Change color of the block
                 const texture = this.theme.textures[color];
-    
+
                 sprite.raster.visible = true;
                 sprite.raster.setImageData(texture);
             }
-    
+
             sprite.color = color;
         });
     }

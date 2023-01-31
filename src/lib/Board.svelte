@@ -4,8 +4,8 @@
 
     import type { Matrix } from "./utilities";
     import { BoardRenderer, getTheme, PieceRenderer } from "./renderers";
-    import { rotatePiece, type Piece } from "./types";
-    import { collides } from "./rules";
+    import type { Piece } from "./types";
+    import { collides, rotate } from "./rules";
     import { getBlocks, getCenter } from "./pieces";
 
     // Component props
@@ -14,14 +14,6 @@
     export let piece: Piece;
 
     let canvas: HTMLCanvasElement;
-    let canvasX: number;
-    let canvasY: number;
-
-    $: if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        canvasX = rect.left;
-        canvasY = rect.top;
-    }
 
     const dispatcher = createEventDispatcher<{ place: Piece }>();
 
@@ -29,7 +21,7 @@
         if (previewPiece) dispatcher("place", previewPiece);
     }
 
-    // Game board
+    // Collision map
     let collisionMap: Piece[];
 
     $: if (board) {
@@ -51,10 +43,13 @@
     // Setup canvas rendering
     let boardRenderer: BoardRenderer;
     let previewRenderer: PieceRenderer;
-    let previewPiece: Piece = null;
 
     onMount(() => {
         paper.setup(canvas);
+
+        // Fix canvas stretching
+        canvas.width = board.cols * cellSize;
+        canvas.height = board.rows * cellSize;
 
         boardRenderer = new BoardRenderer(board, cellSize);
         previewRenderer = new PieceRenderer(piece, cellSize, 0.5);
@@ -74,65 +69,126 @@
             previewRenderer.setPiece(previewPiece, cellSize);
         }
 
-        const visible = !!previewPiece;
+        const visible = previewPiece && mouseOver;
+
         previewRenderer.visible = visible;
-        mouseStyle = visible ? "pointer" : "inherit";
+        cursor = visible ? "pointer" : "inherit";
     }
 
     // Placing preview
-    $: {
-        previewPiece = collisionMap
-            .map((piece) => {
-                let { x, y } = getCenter(piece);
-                x -= mouseX;
-                y -= mouseY;
-                return { piece, distance: x * x + y * y };
-            })
-            .filter(({ distance }) => distance < 5 * 5)
-            .min(({ distance }) => distance)?.piece;
-    }
+    let previewPiece: Piece | null;
+    let cursor = "inherit";
 
-    function hidePreview() {
-        previewPiece = null;
-    }
+    $: previewPiece = collisionMap
+        .map((piece) => {
+            let { x, y } = getCenter(piece);
+            x -= mouseX;
+            y -= mouseY;
+            return { piece, distance: x * x + y * y };
+        })
+        .filter(({ distance }) => distance < 3 * 3)
+        .min(({ distance }) => distance)?.piece;
 
     // Input handling
-    let mouseStyle = "inherit";
+    let mouseOver = false;
     let mouseX = 0;
     let mouseY = 0;
 
     function updateMousePosition({ x, y }: MouseEvent) {
-        mouseX = (x - canvasX) / cellSize;
-        mouseY = (y - canvasY) / cellSize;
+        const rect = canvas.getBoundingClientRect();
+        // 4 pixels added to account for border
+        mouseX = (x - rect.left - 4) / cellSize;
+        mouseY = (y - rect.top) / cellSize;
+    }
+
+    function movePieceKeyboard({ key }: KeyboardEvent) {
+        const oldPiece = previewPiece || piece;
+        let newPiece: Piece;
+
+        switch (key) {
+            case "e":
+                piece = rotate(piece, board, 1);
+                break;
+
+            case "w":
+                piece = rotate(piece, board, 2);
+                break;
+
+            case "q":
+                piece = rotate(piece, board, -1);
+                break;
+
+            case "ArrowRight":
+                newPiece = collisionMap
+                    .filter((p) => p.y === oldPiece.y && p.x > oldPiece.x)
+                    .min((piece) => piece.x);
+                break;
+
+            case "ArrowLeft":
+                newPiece = collisionMap
+                    .filter((p) => p.y === oldPiece.y && p.x < oldPiece.x)
+                    .max((piece) => piece.x);
+                break;
+
+            case "ArrowDown":
+                newPiece = collisionMap
+                    .filter((p) => p.x === oldPiece.x && p.y > oldPiece.y)
+                    .min((piece) => piece.y);
+                break;
+
+            case "ArrowUp":
+                newPiece = collisionMap
+                    .filter((p) => p.x === oldPiece.x && p.y < oldPiece.y)
+                    .max((piece) => piece.y);
+                break;
+
+            case "Enter":
+                placePiece();
+                break;
+        }
+
+        // We can't set `previewPiece` directly here, because
+        // if we changed `piece` (rotated it) the `previewPiece`
+        // will be updated using mouse position after that
+        if (newPiece) {
+            const { x, y } = getCenter(newPiece);
+            mouseX = x;
+            mouseY = y;
+        }
     }
 
     function onMouseDown(event: MouseEvent) {
         if (event.button === 0) {
+            // Left-click on canvas
             placePiece();
         } else if (event.button === 2) {
-            piece = rotatePiece(piece, 1);
+            // Right-click on canvas
+            piece = rotate(piece, board, 1);
         }
     }
 </script>
 
-<main
-    on:mousemove={updateMousePosition}
-    on:mouseout={hidePreview}
-    on:mousedown={onMouseDown}
-    on:contextmenu|preventDefault
-    on:blur={hidePreview}
-    style:cursor={mouseStyle}
->
+<div>
     <canvas
-        width={board.cols * cellSize - 8}
-        height={board.rows * cellSize - 4}
-        style:--cell-size="{cellSize}px"
+        width={board.cols * cellSize}
+        height={board.rows * cellSize}
+        on:mousemove={updateMousePosition}
+        on:keydown={movePieceKeyboard}
+        on:mousedown={onMouseDown}
+        on:contextmenu|preventDefault
+        on:mouseover={() => (mouseOver = true)}
+        on:focus={() => (mouseOver = true)}
+        on:mouseout={() => (mouseOver = false)}
+        on:blur={() => (mouseOver = false)}
+        tabindex={0}
+        style:cursor
+        style:background-size="{cellSize}px"
         bind:this={canvas}
     />
-</main>
+</div>
 
 <style>
-    main {
+    div {
         flex: 1;
         height: 100%;
         display: grid;
@@ -141,11 +197,11 @@
     }
 
     canvas {
-        background-image: url("board-background.png");
-        background-size: var(--cell-size);
+        background-image: url("assets/board-background.png");
         image-rendering: pixelated;
         border: 4px solid white;
         border-top-style: none;
         box-shadow: 0 0 12px #000000aa;
+        box-sizing: border-box;
     }
 </style>

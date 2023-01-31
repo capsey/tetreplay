@@ -24,25 +24,25 @@
     }
 </script>
 
-<main>
-    <div id="background" />
-
-    <NavigationBar />
-
-    <div id="container">
-        <Toolbar on:selected={onPieceSelected} />
-        <Board board={$board} cellSize={24} {piece} on:place={onPiecePlaced} />
-        <SettingsTab />
-    </div>
-</main>
+<NavigationBar />
+<div id="background" />
+<div id="container">
+    <Toolbar on:selected={onPieceSelected} />
+    <Board board={$board} cellSize={24} {piece} on:place={onPiecePlaced} />
+    <SettingsTab />
+</div>
 
 <style>
-    main {
-        width: 100%;
-        height: 100%;
+    :global(body) {
         display: flex;
         flex-direction: column;
-        margin: 0;
+    }
+
+    #container {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        flex-direction: row;
     }
 
     #background {
@@ -53,12 +53,5 @@
         background-image: url("https://images.unsplash.com/photo-1673217611194-579eee2a6ff8?auto=format&fit=crop&w=2070&q=80");
         background-size: cover;
         filter: brightness(50%);
-    }
-
-    #container {
-        flex: 1;
-        width: 100%;
-        display: flex;
-        flex-direction: row;
     }
 </style>
