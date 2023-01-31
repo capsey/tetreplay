@@ -1,5 +1,8 @@
 <script lang="ts">
     import Checkbox from "./Checkbox.svelte";
+    import Dropdown from "./Dropdown.svelte";
+    import { clearLines, onlyPossible } from "./stores/board";
+    import { theme } from "./stores/preferences";
 </script>
 
 <main>
@@ -7,8 +10,17 @@
     ut? Dicta excepturi veniam ab illum adipisci natus sunt quaerat fugit
     repellendus dolorum vitae nostrum repudiandae eos optio, iste quos.
     <form>
-        <Checkbox checked={true}>Automatically clear lines</Checkbox>
-        <Checkbox checked={true}>Only possible placements</Checkbox>
+        <Checkbox bind:checked={$clearLines}>
+            <span>Automatically clear lines</span>
+        </Checkbox>
+        <Checkbox bind:checked={$onlyPossible}>
+            <span>Only possible placements</span>
+        </Checkbox>
+        <Dropdown bind:selected={$theme}>
+            <span slot="label">Board theme</span>
+            <option value="theme-default.png">Default</option>
+            <option value="theme-tetrio.png">TETR.io</option>
+        </Dropdown>
     </form>
 </main>
 

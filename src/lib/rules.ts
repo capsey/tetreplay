@@ -1,6 +1,6 @@
-import { getBlocks } from './pieces';
-import { type Block, type Piece, shiftPiece, rotatePiece } from './types';
-import type { Matrix } from './utilities';
+import { getBlocks } from "./pieces";
+import { type Block, type Piece, shiftPiece, rotatePiece } from "./types";
+import type { Matrix } from "./utilities";
 
 export enum Input {
     SHIFT_RIGHT,

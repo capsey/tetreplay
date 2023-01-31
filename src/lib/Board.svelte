@@ -1,20 +1,20 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from "svelte";
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import * as paper from "paper";
 
     import type { Matrix } from "./utilities";
     import { BoardRenderer, getTheme, PieceRenderer } from "./renderers";
-    import type { Piece } from "./types";
-    import { collides, rotate } from "./rules";
+    import { rotatePiece, type Piece } from "./types";
+    import { collides } from "./rules";
     import { getBlocks, getCenter } from "./pieces";
+    import { theme } from "./stores/preferences";
 
     // Component props
     export let board: Matrix<number>;
     export let cellSize: number;
     export let piece: Piece;
 
-    let canvas: HTMLCanvasElement;
-
+    // Custom events
     const dispatcher = createEventDispatcher<{ place: Piece }>();
 
     function placePiece() {
@@ -41,6 +41,7 @@
     }
 
     // Setup canvas rendering
+    let canvas: HTMLCanvasElement;
     let boardRenderer: BoardRenderer;
     let previewRenderer: PieceRenderer;
 
@@ -53,11 +54,6 @@
 
         boardRenderer = new BoardRenderer(board, cellSize);
         previewRenderer = new PieceRenderer(piece, cellSize, 0.5);
-
-        getTheme("default-tetrominoes.png").then((theme) => {
-            boardRenderer.setTheme(theme);
-            previewRenderer.setTheme(theme);
-        });
     });
 
     $: if (boardRenderer) {
@@ -74,6 +70,17 @@
         previewRenderer.visible = visible;
         cursor = visible ? "pointer" : "inherit";
     }
+
+    // For some reason when reactive statements are used `getTheme`
+    // gets called multiple times although dependencies haven't changed
+    const unsubscribe = theme.subscribe((theme) =>
+        getTheme(theme).then((theme) => {
+            boardRenderer?.setTheme(theme);
+            previewRenderer?.setTheme(theme);
+        })
+    );
+
+    onDestroy(() => unsubscribe());
 
     // Placing preview
     let previewPiece: Piece | null;
@@ -101,47 +108,58 @@
         mouseY = (y - rect.top) / cellSize;
     }
 
-    function movePieceKeyboard({ key }: KeyboardEvent) {
+    function mouseClick(event: MouseEvent) {
+        if (event.button === 0) {
+            // Left-click on canvas
+            placePiece();
+        } else if (event.button === 2) {
+            // Right-click on canvas
+            piece = rotatePiece(piece, 1);
+        }
+    }
+
+    function keyboardInput({ key }: KeyboardEvent) {
         const oldPiece = previewPiece || piece;
         let newPiece: Piece;
 
         switch (key) {
+            // Rotate clockwise
             case "e":
-                piece = rotate(piece, board, 1);
+                piece = rotatePiece(piece, 1);
                 break;
-
+            // Rotate 180 degrees
             case "w":
-                piece = rotate(piece, board, 2);
+                piece = rotatePiece(piece, 2);
                 break;
-
+            // Rotate counter-clockwise
             case "q":
-                piece = rotate(piece, board, -1);
+                piece = rotatePiece(piece, -1);
                 break;
-
+            // Move to the right
             case "ArrowRight":
                 newPiece = collisionMap
                     .filter((p) => p.y === oldPiece.y && p.x > oldPiece.x)
                     .min((piece) => piece.x);
                 break;
-
+            // Move to the left
             case "ArrowLeft":
                 newPiece = collisionMap
                     .filter((p) => p.y === oldPiece.y && p.x < oldPiece.x)
                     .max((piece) => piece.x);
                 break;
-
+            // Move downwards
             case "ArrowDown":
                 newPiece = collisionMap
                     .filter((p) => p.x === oldPiece.x && p.y > oldPiece.y)
                     .min((piece) => piece.y);
                 break;
-
+            // Move upwards
             case "ArrowUp":
                 newPiece = collisionMap
                     .filter((p) => p.x === oldPiece.x && p.y < oldPiece.y)
                     .max((piece) => piece.y);
                 break;
-
+            // Place the piece
             case "Enter":
                 placePiece();
                 break;
@@ -156,16 +174,6 @@
             mouseY = y;
         }
     }
-
-    function onMouseDown(event: MouseEvent) {
-        if (event.button === 0) {
-            // Left-click on canvas
-            placePiece();
-        } else if (event.button === 2) {
-            // Right-click on canvas
-            piece = rotate(piece, board, 1);
-        }
-    }
 </script>
 
 <div>
@@ -173,8 +181,8 @@
         width={board.cols * cellSize}
         height={board.rows * cellSize}
         on:mousemove={updateMousePosition}
-        on:keydown={movePieceKeyboard}
-        on:mousedown={onMouseDown}
+        on:mousedown={mouseClick}
+        on:keydown={keyboardInput}
         on:contextmenu|preventDefault
         on:mouseover={() => (mouseOver = true)}
         on:focus={() => (mouseOver = true)}

@@ -1,4 +1,4 @@
-import type { Piece, Block } from './types';
+import type { Piece, Block } from "./types";
 
 function createBlock(x: number, y: number): Block {
     return { x, y };
@@ -95,4 +95,4 @@ export function pieceEquals(a: Piece, b: Piece) {
     return as.every((x, i) => x.x === bs[i].x && x.y === bs[i].y);
 }
 
-export const pieceNames = ['i-piece', 'j-piece', 'l-piece', 'o-piece', 's-piece', 't-piece', 'z-piece'];
+export const pieceNames = ["i-piece", "j-piece", "l-piece", "o-piece", "s-piece", "t-piece", "z-piece"];

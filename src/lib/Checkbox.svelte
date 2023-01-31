@@ -2,9 +2,9 @@
     export let checked = false;
 </script>
 
-<label>
+<label id="checkbox-label">
     <input type="checkbox" {checked} />
-    <p><slot /></p>
+    <slot />
 </label>
 
 <style>
@@ -15,7 +15,7 @@
         width: 100%;
     }
 
-    p {
+    #checkbox-label:global(#checkbox-label span) {
         margin: 10px;
         user-select: none;
     }
@@ -32,11 +32,12 @@
         border-bottom-style: dashed;
     }
 
+    input:hover,
     input:checked {
         background-color: #00ff0030;
     }
 
-    input:checked:after {
+    input:checked::after {
         content: "";
         position: absolute;
         width: 100%;

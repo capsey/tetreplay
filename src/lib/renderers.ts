@@ -1,8 +1,8 @@
-import * as paper from 'paper';
+import * as paper from "paper";
 
-import { Matrix } from './utilities';
-import { getBlocks } from './pieces';
-import type { Piece } from './types';
+import { Matrix } from "./utilities";
+import { getBlocks } from "./pieces";
+import type { Piece } from "./types";
 
 interface BlockSprite {
     raster: paper.Raster;
@@ -35,7 +35,7 @@ export class BoardRenderer {
 
             // Set sprite properties
             raster.fitBounds(rect);
-            raster.smoothing = 'off';
+            raster.smoothing = "off";
             raster.visible = false;
 
             this.sprites.setItem(x, y, { raster, rect, color: -1 });
@@ -100,7 +100,7 @@ export class PieceRenderer {
 
             // Set sprite properties
             raster.fitBounds(rect);
-            raster.smoothing = 'off';
+            raster.smoothing = "off";
             raster.opacity = opacity || 1;
 
             return { raster, color: piece.type, rect };
@@ -158,16 +158,16 @@ export async function getTheme(imageSource: string): Promise<BoardTheme> {
 
     // Create canvas to hold image texture
     const canvas = new OffscreenCanvas(image.width, image.height);
-    const context = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
+    const context = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
 
     context.drawImage(image, 0, 0);
 
     // Split the image into 7 squares
     const textures = [];
-    const textureSize = image.width / 7;
+    const textureSize = image.height;
 
     for (let i = 0; i < 7; i++) {
-        const imageData = context.getImageData(i * textureSize, 0, textureSize, image.height);
+        const imageData = context.getImageData(i * textureSize, 0, textureSize, textureSize);
         textures.push(imageData);
     }
 
@@ -178,7 +178,7 @@ export async function getTheme(imageSource: string): Promise<BoardTheme> {
 function createSolidTexture(color: string): ImageData {
     // Create canvas to fill with color
     const canvas = new OffscreenCanvas(1, 1);
-    const context = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
+    const context = canvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
 
     // Fill with specified color and return ImageData
     context.fillStyle = color;
@@ -186,7 +186,7 @@ function createSolidTexture(color: string): ImageData {
     return context.getImageData(0, 0, 1, 1);
 }
 
-const unloadedColors = ['#00ffff', '#0000ff', '#ffa500', '#ffff00', '#00ff00', '#800080', '#ff0000'];
+const unloadedColors = ["#00ffff", "#0000ff", "#ffa500", "#ffff00", "#00ff00", "#800080", "#ff0000"];
 const unloadedTheme: BoardTheme = {
     textures: unloadedColors.map(color => createSolidTexture(color)),
     textureSize: 1,
