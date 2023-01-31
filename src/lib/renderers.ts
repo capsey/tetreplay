@@ -15,14 +15,14 @@ export class BoardRenderer {
     private theme: BoardTheme;
     private layer: paper.Layer;
 
-    public constructor(rows: number, cols: number, cellSize: number) {
+    public constructor(board: Matrix<number>, cellSize: number) {
         this.theme = unloadedTheme;
         this.layer = new paper.Layer();
 
         // Creating each block raster
         const size = new paper.Size(cellSize, cellSize);
 
-        this.sprites = new Matrix(rows, cols);
+        this.sprites = new Matrix(board.rows, board.cols);
         this.sprites.forEach((x, y) => {
             // Calculate sprite size and position
             const position = new paper.Point(x * cellSize, y * cellSize);
@@ -54,23 +54,25 @@ export class BoardRenderer {
         })
     }
 
-    public setBlock(x: number, y: number, index: number) {
-        const sprite = this.sprites.getItem(x, y);
+    public update(board: Matrix<number>) {
+        board.forEach((x, y, color) => {
+            const sprite = this.sprites.getItem(x, y);
 
-        if (sprite.color === index) {
-            return;
-        } else if (index < 0) {
-            // Hide empty blocks
-            sprite.raster.visible = false;
-        } else {
-            // Change color of the block
-            const texture = this.theme.textures[index];
-
-            sprite.raster.visible = true;
-            sprite.raster.setImageData(texture);
-        }
-
-        sprite.color = index;
+            if (sprite.color === color) {
+                return;
+            } else if (color < 0) {
+                // Hide empty blocks
+                sprite.raster.visible = false;
+            } else {
+                // Change color of the block
+                const texture = this.theme.textures[color];
+    
+                sprite.raster.visible = true;
+                sprite.raster.setImageData(texture);
+            }
+    
+            sprite.color = color;
+        });
     }
 }
 

@@ -2,7 +2,7 @@
     import { createEventDispatcher } from "svelte";
     import { pieceNames } from "./pieces";
 
-    const dispatch = createEventDispatcher();
+    const dispatch = createEventDispatcher<{ selected: number }>();
 
     let selected = "i-piece";
 
