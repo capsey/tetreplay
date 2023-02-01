@@ -20,6 +20,8 @@
 
     #dropdown-label:global(#dropdown-label span) {
         margin: 8px;
+        margin-bottom: 0;
+        margin-top: 12px;
         user-select: none;
     }
 
@@ -30,6 +32,7 @@
         width: calc(100% - 18px);
         height: 48px;
         margin: 8px;
+        margin-top: 2px;
         border: 3px solid white;
         border-right-style: dashed;
         border-bottom-style: dashed;

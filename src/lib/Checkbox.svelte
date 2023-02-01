@@ -32,8 +32,7 @@
         border-bottom-style: dashed;
     }
 
-    input:hover,
-    input:checked {
+    input:hover {
         background-color: #00ff0030;
     }
 

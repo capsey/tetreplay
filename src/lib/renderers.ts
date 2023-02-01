@@ -15,7 +15,7 @@ export class BoardRenderer {
     private theme: BoardTheme;
     private layer: paper.Layer;
 
-    public constructor(board: Matrix<number>, cellSize: number) {
+    public constructor(board: Matrix<number>, cellSize: number, opacity: number = 1) {
         this.theme = unloadedTheme;
         this.layer = new paper.Layer();
 
@@ -37,6 +37,7 @@ export class BoardRenderer {
             raster.fitBounds(rect);
             raster.smoothing = "off";
             raster.visible = false;
+            raster.opacity = opacity;
 
             this.sprites.setItem(x, y, { raster, rect, color: -1 });
         });
@@ -81,7 +82,7 @@ export class PieceRenderer {
     private theme: BoardTheme;
     private layer: paper.Layer;
 
-    public constructor(piece: Piece, cellSize: number, opacity?: number) {
+    public constructor(piece: Piece, cellSize: number, opacity: number = 1) {
         this.theme = unloadedTheme;
         this.layer = new paper.Layer();
 
@@ -101,7 +102,7 @@ export class PieceRenderer {
             // Set sprite properties
             raster.fitBounds(rect);
             raster.smoothing = "off";
-            raster.opacity = opacity || 1;
+            raster.opacity = opacity;
 
             return { raster, color: piece.type, rect };
         });
@@ -140,20 +141,26 @@ export class PieceRenderer {
 }
 
 // Board theme related stuff
-export type BoardTheme = {
-    textures: ImageData[];
-    textureSize: number;
+export type BoardThemeSource = {
+    name: string;
+    texture: string;
+    size: number;
 };
 
-export async function getTheme(imageSource: string): Promise<BoardTheme> {
+export type BoardTheme = {
+    textures: ImageData[];
+    size: number;
+};
+
+export async function getTheme(source: BoardThemeSource): Promise<BoardTheme> {
     // Load requested texture using URL
-    const res = await fetch(imageSource);
-    const blob = await res.blob();
+    const res = await fetch(source.texture);
 
     if (!res.ok) {
         throw new Error("Could not load theme texture!");
     }
 
+    const blob = await res.blob();
     const image = await createImageBitmap(blob);
 
     // Create canvas to hold image texture
@@ -164,14 +171,13 @@ export async function getTheme(imageSource: string): Promise<BoardTheme> {
 
     // Split the image into 7 squares
     const textures = [];
-    const textureSize = image.height;
 
     for (let i = 0; i < 7; i++) {
-        const imageData = context.getImageData(i * textureSize, 0, textureSize, textureSize);
+        const imageData = context.getImageData(i * source.size, 0, source.size, source.size);
         textures.push(imageData);
     }
 
-    return { textures, textureSize };
+    return { textures, size: source.size };
 }
 
 // Unloaded board theme
@@ -187,7 +193,14 @@ function createSolidTexture(color: string): ImageData {
 }
 
 const unloadedColors = ["#00ffff", "#0000ff", "#ffa500", "#ffff00", "#00ff00", "#800080", "#ff0000"];
-const unloadedTheme: BoardTheme = {
-    textures: unloadedColors.map(color => createSolidTexture(color)),
-    textureSize: 1,
-};
+const unloadedTextures = unloadedColors.map(color => createSolidTexture(color));
+const unloadedTheme: BoardTheme = { textures: unloadedTextures, size: 1 };
+
+// Built-in board themes
+export const themes: BoardThemeSource[] = [
+    { name: "Tetris 99", texture: "theme-99.png", size: 48 },
+    { name: "Tetris Party Deluxe", texture: "theme-party.png", size: 32 },
+    { name: "TETR.IO", texture: "theme-tetrio.png", size: 48 },
+    { name: "NES", texture: "theme-nes.png", size: 8 },
+    { name: "SNES", texture: "theme-snes.png", size: 8 },
+];

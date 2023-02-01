@@ -1,6 +1,7 @@
 <script lang="ts">
     import Checkbox from "./Checkbox.svelte";
     import Dropdown from "./Dropdown.svelte";
+    import { themes } from "./renderers";
     import { clearLines, onlyPossible } from "./stores/board";
     import { themeSource } from "./stores/preferences";
 </script>
@@ -18,8 +19,9 @@
         </Checkbox>
         <Dropdown bind:selected={$themeSource}>
             <span slot="label">Board theme</span>
-            <option value="theme-default.png">Default</option>
-            <option value="theme-tetrio.png">TETR.io</option>
+            {#each themes as theme}
+                <option value={theme}>{theme.name}</option>
+            {/each}
         </Dropdown>
     </form>
 </main>

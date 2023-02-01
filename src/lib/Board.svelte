@@ -53,7 +53,7 @@
         canvas.height = board.rows * cellSize;
 
         boardRenderer = new BoardRenderer(board, cellSize);
-        previewRenderer = new PieceRenderer(piece, cellSize, 0.5);
+        previewRenderer = new PieceRenderer(piece, cellSize, 0.25);
     });
 
     $: if (boardRenderer) {
