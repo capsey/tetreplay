@@ -34,32 +34,43 @@
 <style>
     form {
         height: 100%;
-        display: flex;
-        flex-direction: column;
-        background-color: #000000be;
-        box-shadow: 0 0 12px #000000aa;
         box-sizing: border-box;
         padding: 16px;
+
+        display: flex;
+        flex-direction: column;
         gap: 16px;
+
+        background-color: #000000be;
+        box-shadow: 0 0 12px #000000aa;
     }
 
     input {
         position: relative;
         appearance: none;
         cursor: pointer;
+
         width: 56px;
         height: 56px;
-        background-image: var(--icon);
-        background-size: contain;
+        margin: 0;
+
         border: 3px solid white;
         border-right-style: dashed;
         border-bottom-style: dashed;
-        margin: 0;
+
+        background-image: var(--icon);
+        background-size: contain;
+
+        transition: background-color 0.1s, box-shadow 0.1s;
     }
 
     input:hover,
     input:checked {
         background-color: var(--color);
+    }
+
+    input:hover {
+        box-shadow: 0 0 4px white;
     }
 
     input[value="i-piece"] {

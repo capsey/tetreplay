@@ -49,10 +49,7 @@ export const board = (() => {
             getBlocks(piece).forEach(({ x, y }) => board.setItem(x, y, piece.type));
 
             // Check for line clears if needed
-            if (get(shouldClearLines)) {
-                clearLines(board);
-                console.log(get(shouldClearLines));
-            }
+            if (get(shouldClearLines)) clearLines(board);
 
             return board;
         });

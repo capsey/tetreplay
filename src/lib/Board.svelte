@@ -196,18 +196,22 @@
 <style>
     div {
         flex: 1;
+
         height: 100%;
+
         display: grid;
         align-items: center;
         justify-items: center;
     }
 
     canvas {
-        background-image: url("assets/board-background.png");
-        image-rendering: pixelated;
         border: 4px solid white;
         border-top-style: none;
-        box-shadow: 0 0 12px #000000aa;
         box-sizing: border-box;
+
+        background-image: url("assets/board-background.png");
+        image-rendering: pixelated;
+
+        box-shadow: 0 0 12px #000000aa;
     }
 </style>
