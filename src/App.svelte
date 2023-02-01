@@ -1,7 +1,7 @@
 <script lang="ts">
     import Board from "./lib/Board.svelte";
     import NavigationBar from "./lib/NavigationBar.svelte";
-    import { getBlocks, getSpawnPosition } from "./lib/pieces";
+    import { getSpawnPosition } from "./lib/pieces";
     import SettingsTab from "./lib/SettingsTab.svelte";
     import Toolbar from "./lib/Toolbar.svelte";
     import { board } from "./lib/stores/board";
@@ -9,20 +9,22 @@
 
     let piece = getSpawnPosition(0);
 
+    function onKeyDown({ key, ctrlKey }: KeyboardEvent) {
+        if (key === "z" && ctrlKey) board.undo();
+        if (key === "Backspace") board.clear();
+    }
+
     function onPieceSelected(event: CustomEvent<number>) {
         const color = event.detail;
         piece = getSpawnPosition(color);
     }
 
-    function onPiecePlaced({ detail: piece }: CustomEvent<Piece>) {
-        board.update((board) => {
-            getBlocks(piece).forEach((block) =>
-                board.setItem(block.x, block.y, piece.type)
-            );
-            return board;
-        });
+    function onPiecePlaced({ detail }: CustomEvent<Piece>) {
+        board.placePiece(detail);
     }
 </script>
+
+<svelte:window on:keydown={onKeyDown} />
 
 <NavigationBar />
 <div id="background" />

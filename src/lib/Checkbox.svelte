@@ -3,7 +3,7 @@
 </script>
 
 <label id="checkbox-label">
-    <input type="checkbox" {checked} />
+    <input type="checkbox" bind:checked />
     <slot />
 </label>
 
@@ -13,10 +13,11 @@
         display: flex;
         flex-direction: row;
         width: 100%;
+        margin-bottom: 20px;
     }
 
     #checkbox-label:global(#checkbox-label span) {
-        margin: 10px;
+        margin: 3px 18px 0 18px;
         user-select: none;
     }
 
@@ -26,7 +27,7 @@
         cursor: pointer;
         width: 32px;
         height: 32px;
-        margin: 8px;
+        margin: 0;
         border: 3px solid white;
         border-right-style: dashed;
         border-bottom-style: dashed;

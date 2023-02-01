@@ -2,19 +2,30 @@
     import Checkbox from "./Checkbox.svelte";
     import Dropdown from "./Dropdown.svelte";
     import { themes } from "./renderers";
-    import { clearLines, onlyPossible } from "./stores/board";
+    import { shouldClearLines, onlyAllowDoable } from "./stores/board";
     import { themeSource } from "./stores/preferences";
 </script>
 
 <main>
-    Lorem, ipsum dolor sit amet consectetur adipisicing elit. Voluptate, beatae
-    ut? Dicta excepturi veniam ab illum adipisci natus sunt quaerat fugit
-    repellendus dolorum vitae nostrum repudiandae eos optio, iste quos.
+    <p>
+        Place pieces on the board by hovering on correct place and left-clicking
+        on the board using. You can also rotate the piece using right-click. To
+        undo piece placement you can press <span class="key">Ctrl+Z</span>. To
+        clear the board press <span class="key">Backspace</span>.
+    </p>
+    <p>
+        Alternatively, you can use <span class="key">TAB</span> key to focus on
+        the board and move the piece using <span class="key">Arrow</span> keys,
+        place it using <span class="key">Enter</span> key and rotate using
+        <span class="key">Q</span>, <span class="key">W</span> and
+        <span class="key">E</span> keys.
+    </p>
+    <p>Replay settings:</p>
     <form>
-        <Checkbox bind:checked={$clearLines}>
+        <Checkbox bind:checked={$shouldClearLines}>
             <span>Automatically clear lines</span>
         </Checkbox>
-        <Checkbox bind:checked={$onlyPossible}>
+        <Checkbox bind:checked={$onlyAllowDoable}>
             <span>Only possible placements</span>
         </Checkbox>
         <Dropdown bind:selected={$themeSource}>
@@ -35,6 +46,18 @@
         padding: 1.5rem;
         background-color: #000000be;
         box-shadow: 0 0 12px #000000aa;
+    }
+
+    p {
+        margin: 0;
+    }
+
+    span.key {
+        user-select: none;
+        background-color: #363636;
+        border-radius: 6px;
+        padding: 4px 6px 1px 6px;
+        box-shadow: 0 4px #272727;
     }
 
     form {
