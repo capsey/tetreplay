@@ -73,12 +73,10 @@
 
     // For some reason when reactive statements are used `getTheme`
     // gets called multiple times although dependencies haven't changed
-    const unsubscribe = theme.subscribe((theme) =>
-        getTheme(theme).then((theme) => {
-            boardRenderer?.setTheme(theme);
-            previewRenderer?.setTheme(theme);
-        })
-    );
+    const unsubscribe = theme.subscribe((theme) => {
+        boardRenderer?.setTheme(theme);
+        previewRenderer?.setTheme(theme);
+    });
 
     onDestroy(() => unsubscribe());
 

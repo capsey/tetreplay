@@ -2,7 +2,7 @@
     import Checkbox from "./Checkbox.svelte";
     import Dropdown from "./Dropdown.svelte";
     import { clearLines, onlyPossible } from "./stores/board";
-    import { theme } from "./stores/preferences";
+    import { themeSource } from "./stores/preferences";
 </script>
 
 <main>
@@ -16,7 +16,7 @@
         <Checkbox bind:checked={$onlyPossible}>
             <span>Only possible placements</span>
         </Checkbox>
-        <Dropdown bind:selected={$theme}>
+        <Dropdown bind:selected={$themeSource}>
             <span slot="label">Board theme</span>
             <option value="theme-default.png">Default</option>
             <option value="theme-tetrio.png">TETR.io</option>
