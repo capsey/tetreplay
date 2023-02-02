@@ -7,6 +7,7 @@
     import { board } from "./lib/stores/board";
     import type { Piece } from "./lib/types";
 
+    let cellSize = 24;
     let piece = getSpawnPosition(0);
 
     function onKeyDown({ key, ctrlKey }: KeyboardEvent) {
@@ -30,7 +31,7 @@
 <div id="background" />
 <div id="container">
     <Toolbar on:selected={onPieceSelected} />
-    <Board board={$board} cellSize={24} {piece} on:place={onPiecePlaced} />
+    <Board board={$board} {cellSize} {piece} on:place={onPiecePlaced} />
     <SettingsTab />
 </div>
 
@@ -43,6 +44,7 @@
     #container {
         flex: 1;
         width: 100%;
+        height: calc(100% - 4.2rem);
         display: flex;
         flex-direction: row;
     }
@@ -51,8 +53,8 @@
         position: absolute;
         z-index: -1;
 
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
 
         background-image: url("https://images.unsplash.com/photo-1673217611194-579eee2a6ff8?auto=format&fit=crop&w=2070&q=80");
         background-size: cover;

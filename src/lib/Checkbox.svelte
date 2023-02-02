@@ -2,9 +2,9 @@
     export let checked = false;
 </script>
 
-<label id="checkbox-label">
+<label>
     <input type="checkbox" bind:checked />
-    <slot />
+    <span><slot /></span>
 </label>
 
 <style>
@@ -14,24 +14,24 @@
         cursor: pointer;
 
         width: 100%;
-        margin-bottom: 20px;
+        margin: 8px 0 16px 0;
 
-        transition: text-shadow 0.1s;
+        transition: text-shadow var(--hover-duration);
     }
 
     label input {
-        transition: box-shadow 0.1s;
+        transition: box-shadow var(--hover-duration);
     }
 
     label:hover {
-        text-shadow: 0 0 4px white;
+        text-shadow: 0 0 var(--glow-radius) var(--glow-color);
     }
 
     label:hover input {
-        box-shadow: 0 0 4px white;
+        box-shadow: 0 0 var(--glow-radius) var(--glow-color);
     }
 
-    #checkbox-label:global(#checkbox-label span) {
+    span {
         margin: 3px 18px 0 18px;
         user-select: none;
     }
@@ -49,11 +49,13 @@
         border-right-style: dashed;
         border-bottom-style: dashed;
 
-        transition: background-color 0.1s;
+        background-color: transparent;
+
+        transition: background-color var(--hover-duration);
     }
 
     input:hover {
-        background-color: #00ff0030;
+        background-color: var(--hover-color);
     }
 
     input::after {
@@ -70,7 +72,7 @@
         transform: translateY(-1px) rotate(45deg);
         opacity: 0;
 
-        transition: opacity 0.1s;
+        transition: opacity var(--hover-duration);
     }
 
     input:checked::after {

@@ -1,31 +1,12 @@
 <script lang="ts">
-    export let selected: any = undefined;
+    export let selected: any;
 </script>
 
-<div>
-    <label id="dropdown-label">
-        <slot name="label" /><br />
-    </label>
-    <select id="select-element" bind:value={selected} on:change>
-        <slot />
-    </select>
-</div>
+<select class="select-element" bind:value={selected} on:change>
+    <slot />
+</select>
 
 <style>
-    label {
-        width: 100%;
-
-        display: flex;
-        flex-direction: row;
-    }
-
-    #dropdown-label:global(#dropdown-label span) {
-        margin-bottom: 0;
-        margin-top: 12px;
-
-        user-select: none;
-    }
-
     select {
         appearance: none;
         position: relative;
@@ -43,22 +24,24 @@
 
         background-color: transparent;
 
-        transition: box-shadow 0.1s, background-color 0.1s;
+        background-image: url(assets/t-piece-icon.svg);
+        background-repeat: no-repeat;
+        background-position: right center;
+
+        transition: box-shadow var(--hover-duration),
+            background-color var(--hover-duration);
     }
 
     select:hover,
     select:focus {
-        background-color: #00ff0030;
-        background-image: url(assets/t-piece-icon.svg);
-        background-repeat: no-repeat;
-        background-position: right center;
+        background-color: var(--hover-color);
     }
 
     select:hover {
-        box-shadow: 0 0 4px white;
+        box-shadow: 0 0 var(--glow-radius) var(--glow-color);
     }
 
-    #select-element:global(#select-element option) {
+    .select-element:global(.select-element option) {
         color: black;
         background-color: white;
     }

@@ -59,52 +59,54 @@
         border-bottom-style: dashed;
 
         background-image: var(--icon);
+        background-repeat: no-repeat;
         background-size: contain;
 
-        transition: background-color 0.1s, box-shadow 0.1s;
+        transition: background-color var(--hover-duration),
+            box-shadow var(--hover-duration);
     }
 
     input:hover,
     input:checked {
-        background-color: var(--color);
+        background-color: var(--hover-color);
     }
 
     input:hover {
-        box-shadow: 0 0 4px white;
+        box-shadow: 0 0 var(--glow-radius) var(--glow-color);
     }
 
     input[value="i-piece"] {
         --icon: url("assets/i-piece-icon.svg");
-        --color: #00bcbc50;
+        --hover-color: #00bcbc50;
     }
 
     input[value="j-piece"] {
         --icon: url("assets/j-piece-icon.svg");
-        --color: #0000d250;
+        --hover-color: #0000d250;
     }
 
     input[value="l-piece"] {
         --icon: url("assets/l-piece-icon.svg");
-        --color: #d33c0050;
+        --hover-color: #d33c0050;
     }
 
     input[value="o-piece"] {
         --icon: url("assets/o-piece-icon.svg");
-        --color: #b3b30050;
+        --hover-color: #b3b30050;
     }
 
     input[value="s-piece"] {
         --icon: url("assets/s-piece-icon.svg");
-        --color: #00ac0050;
+        --hover-color: #00ac0050;
     }
 
     input[value="t-piece"] {
         --icon: url("assets/t-piece-icon.svg");
-        --color: #7e007e50;
+        --hover-color: #7e007e50;
     }
 
     input[value="z-piece"] {
         --icon: url("assets/z-piece-icon.svg");
-        --color: #95000050;
+        --hover-color: #95000050;
     }
 </style>
