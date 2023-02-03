@@ -1,7 +1,7 @@
 <script lang="ts">
     import Checkbox from "./Checkbox.svelte";
     import Dropdown from "./Dropdown.svelte";
-    import { themes } from "./renderers";
+    import { themes } from "./rendering";
     import { shouldClearLines, onlyAllowDoable } from "./stores/board";
     import { themeSource } from "./stores/preferences";
 </script>

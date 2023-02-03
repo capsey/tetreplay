@@ -1,18 +1,20 @@
 <script lang="ts">
-    import { createEventDispatcher, onDestroy, onMount } from "svelte";
-    import * as paper from "paper";
+    import { createEventDispatcher } from "svelte";
 
     import type { Matrix } from "./utilities";
-    import { BoardRenderer, getTheme, PieceRenderer } from "./renderers";
     import { rotatePiece, type Piece } from "./types";
     import { collides } from "./rules";
     import { getBlocks, getCenter } from "./pieces";
     import { theme } from "./stores/preferences";
+    import { drawBoard, drawPiece } from "./rendering";
 
     // Component props
     export let board: Matrix<number>;
     export let cellSize: number;
     export let piece: Piece;
+
+    export let clientWidth: number = 0;
+    export let clientHeight: number = 0;
 
     // Custom events
     const dispatcher = createEventDispatcher<{ place: Piece }>();
@@ -40,46 +42,6 @@
         }
     }
 
-    // Setup canvas rendering
-    let canvas: HTMLCanvasElement;
-    let boardRenderer: BoardRenderer;
-    let previewRenderer: PieceRenderer;
-
-    onMount(() => {
-        paper.setup(canvas);
-
-        // Fix canvas stretching
-        canvas.width = board.cols * cellSize;
-        canvas.height = board.rows * cellSize;
-
-        boardRenderer = new BoardRenderer(board, cellSize);
-        previewRenderer = new PieceRenderer(piece, cellSize, 0.25);
-    });
-
-    $: if (boardRenderer) {
-        boardRenderer.update(board);
-    }
-
-    $: if (previewRenderer) {
-        if (previewPiece) {
-            previewRenderer.setPiece(previewPiece, cellSize);
-        }
-
-        const visible = previewPiece && mouseOver;
-
-        previewRenderer.visible = visible;
-        cursor = visible ? "pointer" : "inherit";
-    }
-
-    // For some reason when reactive statements are used `getTheme`
-    // gets called multiple times although dependencies haven't changed
-    const unsubscribe = theme.subscribe((theme) => {
-        boardRenderer?.setTheme(theme);
-        previewRenderer?.setTheme(theme);
-    });
-
-    onDestroy(() => unsubscribe());
-
     // Placing preview
     let previewPiece: Piece | null;
     let cursor = "inherit";
@@ -93,6 +55,26 @@
         })
         .filter(({ distance }) => distance < 3 * 3)
         .min(({ distance }) => distance)?.piece;
+
+    $: cursor = previewPiece && mouseOver ? "pointer" : "inherit";
+
+    // Setup canvas rendering
+    let canvas: HTMLCanvasElement;
+    let context: CanvasRenderingContext2D;
+
+    $: context = canvas?.getContext("2d");
+
+    $: if (context) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw board cells
+        drawBoard(context, board, $theme, cellSize);
+
+        // Draw preview piece
+        if (previewPiece && mouseOver) {
+            drawPiece(context, previewPiece, $theme, cellSize, 0.25);
+        }
+    }
 
     // Input handling
     let mouseOver = false;
@@ -174,7 +156,7 @@
     }
 </script>
 
-<div>
+<div bind:clientHeight={clientHeight} bind:clientWidth={clientWidth}>
     <canvas
         width={board.cols * cellSize}
         height={board.rows * cellSize}
@@ -198,6 +180,7 @@
         flex: 1;
 
         height: 100%;
+        overflow: hidden;
 
         display: grid;
         align-items: center;

@@ -10,6 +10,22 @@
     let cellSize = 24;
     let piece = getSpawnPosition(0);
 
+    // Responsive cell size
+    let boardContainerWidth: number;
+    let boardContainerHeight: number;
+
+    $: if (boardContainerWidth && boardContainerHeight) {
+        const padding = 0.8;
+        const width = boardContainerWidth * padding;
+        const height = boardContainerHeight * padding;
+
+        cellSize = Math.min(
+            Math.floor(width / $board.cols),
+            Math.floor(height / $board.rows),
+        );
+    }
+
+    // Input handling
     function onKeyDown({ key, ctrlKey }: KeyboardEvent) {
         if (key === "z" && ctrlKey) board.undo();
         if (key === "Backspace") board.clear();
@@ -31,7 +47,14 @@
 <div id="background" />
 <div id="container">
     <Toolbar on:selected={onPieceSelected} />
-    <Board board={$board} {cellSize} {piece} on:place={onPiecePlaced} />
+    <Board
+        board={$board}
+        {cellSize}
+        {piece}
+        on:place={onPiecePlaced}
+        bind:clientWidth={boardContainerWidth}
+        bind:clientHeight={boardContainerHeight}
+    />
     <SettingsTab />
 </div>
 
