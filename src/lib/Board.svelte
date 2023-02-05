@@ -1,8 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-
     import type { Matrix } from "./utilities";
-    import { rotatePiece, type Piece } from "./types";
+    import type { Piece } from "./types";
     import { collides } from "./rules";
     import { getBlocks, getCenter } from "./pieces";
     import { theme } from "./stores/preferences";
@@ -10,11 +9,12 @@
 
     // Component props
     export let board: Matrix<number>;
-    export let cellSize: number;
     export let piece: Piece;
 
-    export let clientWidth: number = 0;
-    export let clientHeight: number = 0;
+    let rotation: number = 0;
+
+    // Reset rotation when user selects another piece
+    $: if (piece) rotation = 0;
 
     // Custom events
     const dispatcher = createEventDispatcher<{ place: Piece }>();
@@ -32,10 +32,13 @@
         // Check every position on the board
         for (let x = -2; x < board.cols; x++) {
             for (let y = -1; y < board.rows; y++) {
-                const shiftedPiece: Piece = { ...piece, x, y };
+                const shiftedPiece: Piece = { ...piece, rotation, x, y };
+                const shiftedBlocks = getBlocks(shiftedPiece);
 
                 // Add if can be placed there
-                if (!collides(getBlocks(shiftedPiece), board)) {
+                const collidesBoard = collides(shiftedBlocks, board);
+
+                if (!collidesBoard) {
                     collisionMap.push(shiftedPiece);
                 }
             }
@@ -58,21 +61,22 @@
 
     $: cursor = previewPiece && mouseOver ? "pointer" : "inherit";
 
-    // Setup canvas rendering
+    // Canvas rendering
     let canvas: HTMLCanvasElement;
     let context: CanvasRenderingContext2D;
 
     $: context = canvas?.getContext("2d");
 
-    $: if (context) {
+    $: if (context && $theme) {
         context.clearRect(0, 0, canvas.width, canvas.height);
+        context.imageSmoothingEnabled = false;
 
         // Draw board cells
-        drawBoard(context, board, $theme, cellSize);
+        drawBoard(context, board, $theme);
 
         // Draw preview piece
         if (previewPiece && mouseOver) {
-            drawPiece(context, previewPiece, $theme, cellSize, 0.25);
+            drawPiece(context, previewPiece, $theme, 0.25);
         }
     }
 
@@ -83,37 +87,39 @@
 
     function updateMousePosition({ x, y }: MouseEvent) {
         const rect = canvas.getBoundingClientRect();
-        // 4 pixels added to account for border
-        mouseX = (x - rect.left - 4) / cellSize;
-        mouseY = (y - rect.top) / cellSize;
+        mouseX = (board.cols * (x - rect.left)) / rect.width;
+        mouseY = (board.rows * (y - rect.top)) / rect.height;
     }
 
-    function mouseClick(event: MouseEvent) {
-        if (event.button === 0) {
+    function mouseClick({ button }: MouseEvent) {
+        switch (button) {
             // Left-click on canvas
-            placePiece();
-        } else if (event.button === 2) {
+            case 0:
+                placePiece();
+                break;
             // Right-click on canvas
-            piece = rotatePiece(piece, 1);
+            case 2:
+                rotation = (rotation + 1 + 4) % 4;
+                break;
         }
     }
 
     function keyboardInput({ key }: KeyboardEvent) {
-        const oldPiece = previewPiece || piece;
-        let newPiece: Piece;
+        const oldPiece = previewPiece || { ...piece, rotation };
+        let newPiece = oldPiece;
 
         switch (key) {
             // Rotate clockwise
             case "e":
-                piece = rotatePiece(piece, 1);
+                rotation = (rotation + 1 + 4) % 4;
                 break;
             // Rotate 180 degrees
             case "w":
-                piece = rotatePiece(piece, 2);
+                rotation = (rotation + 2 + 4) % 4;
                 break;
             // Rotate counter-clockwise
             case "q":
-                piece = rotatePiece(piece, -1);
+                rotation = (rotation - 1 + 4) % 4;
                 break;
             // Move to the right
             case "ArrowRight":
@@ -148,18 +154,41 @@
         // We can't set `previewPiece` directly here, because
         // if we changed `piece` (rotated it) the `previewPiece`
         // will be updated using mouse position after that
-        if (newPiece) {
-            const { x, y } = getCenter(newPiece);
-            mouseX = x;
-            mouseY = y;
-        }
+        const { x, y } = getCenter(newPiece);
+        mouseX = x;
+        mouseY = y;
+    }
+
+    // Canvas dinamic size
+    let containerWidth: number;
+    let containerHeight: number;
+    let width: string;
+    let height: string;
+
+    $: if (containerHeight) {
+        let cell = Math.min(
+            containerHeight / board.rows,
+            containerWidth / board.cols
+        );
+
+        // Increment for less pixel distortion
+        // Unless it's too small for it to matter
+        const increment = 12;
+        if (cell > 24) cell = Math.floor(cell / increment) * increment;
+
+        height = cell * board.rows + "px";
+        width = cell * board.cols + "px";
     }
 </script>
 
-<div bind:clientHeight={clientHeight} bind:clientWidth={clientWidth}>
+<div bind:clientWidth={containerWidth} bind:clientHeight={containerHeight}>
     <canvas
-        width={board.cols * cellSize}
-        height={board.rows * cellSize}
+        width={$theme.size * board.cols}
+        height={$theme.size * board.rows}
+        tabindex={0}
+        style:width
+        style:height
+        style:cursor
         on:mousemove={updateMousePosition}
         on:mousedown={mouseClick}
         on:keydown={keyboardInput}
@@ -168,33 +197,34 @@
         on:focus={() => (mouseOver = true)}
         on:mouseout={() => (mouseOver = false)}
         on:blur={() => (mouseOver = false)}
-        tabindex={0}
-        style:cursor
-        style:background-size="{cellSize}px"
         bind:this={canvas}
     />
 </div>
 
 <style>
     div {
-        flex: 1;
+        display: flex;
 
-        height: 100%;
-        overflow: hidden;
+        width: calc(100% - 2.4rem);
+        height: calc(100% - 2.4rem);
 
-        display: grid;
-        align-items: center;
-        justify-items: center;
+        min-width: 0;
+        min-height: 0;
+
+        margin: 1.2rem;
     }
 
     canvas {
-        border: 4px solid white;
-        border-top-style: none;
-        box-sizing: border-box;
+        margin: auto;
+        box-sizing: content-box;
+
+        border: calc(1.5 * var(--border)) white;
+        border-style: none solid solid solid;
 
         background-image: url("assets/board-background.png");
+        background-size: contain;
         image-rendering: pixelated;
 
-        box-shadow: 0 0 12px #000000aa;
+        box-shadow: 0 0 var(--shadow-radius) var(--shadow-color);
     }
 </style>

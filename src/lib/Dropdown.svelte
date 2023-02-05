@@ -13,14 +13,12 @@
         cursor: pointer;
 
         width: 100%;
-        height: 48px;
-        padding: 10px 10px 6px 10px;
+        padding: 0.6rem 0.6rem 0.4rem 0.6rem;
         margin: 0;
-        margin-top: 2px;
+        margin-top: 0.4rem;
 
-        border: 3px solid white;
-        border-right-style: dashed;
-        border-bottom-style: dashed;
+        border: var(--border) white;
+        border-style: solid dashed dashed solid;
 
         background-color: transparent;
 
@@ -28,8 +26,8 @@
         background-repeat: no-repeat;
         background-position: right center;
 
-        transition: box-shadow var(--hover-duration),
-            background-color var(--hover-duration);
+        transition: box-shadow var(--hover-duration) var(--hover-timing),
+            background-color var(--hover-duration) var(--hover-timing);
     }
 
     select:hover,
@@ -41,6 +39,7 @@
         box-shadow: 0 0 var(--glow-radius) var(--glow-color);
     }
 
+    /* Fix browser pop-up colors */
     .select-element:global(.select-element option) {
         color: black;
         background-color: white;

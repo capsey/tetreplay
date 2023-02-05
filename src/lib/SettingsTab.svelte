@@ -25,7 +25,7 @@
         number keys from <span class="key">1</span> to
         <span class="key">7</span>.
     </p>
-    <div>
+    <section>
         <p>Replay settings:</p>
         <Checkbox bind:checked={$shouldClearLines}>
             Automatically clear lines
@@ -33,20 +33,20 @@
         <Checkbox bind:checked={$onlyAllowDoable}>
             Only possible placements
         </Checkbox>
-    </div>
-    <div>
+    </section>
+    <section>
         <p>Board theme:</p>
         <Dropdown bind:selected={$themeSource}>
             {#each themes as theme}
                 <option value={theme}>{theme.name}</option>
             {/each}
         </Dropdown>
-    </div>
+    </section>
 </main>
 
 <style>
     main {
-        flex: 1;
+        grid-area: settings;
 
         display: flex;
         flex-direction: column;
@@ -54,41 +54,26 @@
 
         height: 100%;
         padding: 1.5rem;
-        box-sizing: border-box;
         overflow-y: scroll;
 
-        background-color: #000000be;
-        box-shadow: 0 0 12px #000000aa;
+        background-color: var(--bg-container);
+        box-shadow: 0 0 var(--shadow-radius) var(--shadow-color);
     }
 
     p {
         cursor: default;
-        margin: 0;
     }
 
     span.key {
         display: inline-block;
         text-align: center;
 
-        min-width: 1rem;
-        height: 1.3rem;
-        padding: 0 4px 0 4px;
+        min-width: 1.25rem;
+        height: 1.25rem;
+        padding: 0 0.25rem;
 
         background-color: #363636;
-        box-shadow: 0 var(--extrude) #272727;
-        border-radius: 6px;
-
-        --extrude: 2px;
-        transition: color var(--hover-duration),
-            background-color var(--hover-duration),
-            transform var(--hover-duration), box-shadow var(--hover-duration);
-        transform-box: fill-box;
-    }
-
-    span.key:hover {
-        color: rgb(150, 150, 150);
-        transform: translateY(var(--extrude));
-        background-color: #272727;
-        box-shadow: 0 0 #272727;
+        box-shadow: 0 0.15rem #272727;
+        border-radius: 0.35rem;
     }
 </style>

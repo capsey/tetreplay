@@ -1,21 +1,10 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
     import { pieceNames } from "./pieces";
 
-    const dispatch = createEventDispatcher<{ selected: number }>();
+    export let selected = "i-piece";
 
-    let selected = "i-piece";
-
-    $: if (selected) {
-        const index = pieceNames.findIndex((x) => x === selected);
-        dispatch("selected", index);
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-        if (/^[1-7]$/.test(event.key)) {
-            const index = parseInt(event.key) - 1;
-            selected = pieceNames[index];
-        }
+    function onKeyDown({ key }: KeyboardEvent) {
+        if (/^[1-7]$/.test(key)) selected = pieceNames[parseInt(key) - 1];
     }
 </script>
 
@@ -33,37 +22,37 @@
 
 <style>
     form {
-        height: 100%;
-        box-sizing: border-box;
-        padding: 16px;
+        grid-area: toolbar;
 
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+        display: grid;
+        grid-template-rows: repeat(7, min-content) auto;
+        grid-template-columns: min-content;
 
-        background-color: #000000be;
-        box-shadow: 0 0 12px #000000aa;
+        padding: 0.8rem;
+        gap: 1rem;
+
+        overflow-y: scroll;
+        scrollbar-width: none;
+
+        background-color: var(--bg-container);
+        box-shadow: 0 0 var(--shadow-radius) var(--shadow-color);
     }
 
     input {
-        position: relative;
         appearance: none;
         cursor: pointer;
 
-        width: 56px;
-        height: 56px;
-        margin: 0;
+        width: 3rem;
+        height: 3rem;
 
-        border: 3px solid white;
-        border-right-style: dashed;
-        border-bottom-style: dashed;
+        border: var(--border) white;
+        border-style: solid dashed dashed solid;
 
         background-image: var(--icon);
-        background-repeat: no-repeat;
         background-size: contain;
 
-        transition: background-color var(--hover-duration),
-            box-shadow var(--hover-duration);
+        transition: background-color var(--hover-duration) var(--hover-timing),
+            box-shadow var(--hover-duration) var(--hover-timing);
     }
 
     input:hover,

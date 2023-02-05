@@ -3,36 +3,23 @@ import type { Piece } from "./types";
 import type { Matrix } from "./utilities";
 
 // Drawing functions
-export function drawBoard(context: CanvasRenderingContext2D, board: Matrix<number>, theme: BoardTheme, cellSize: number, opacity: number = 1) {
+export function drawBoard(context: CanvasRenderingContext2D, board: Matrix<number>, theme: BoardTheme, opacity: number = 1) {
     context.globalAlpha = opacity;
     board.forEach((x, y, value) => {
         if (value < 0) return;
 
         const texture = theme.textures[value];
-
-        context.drawImage(
-            texture,
-            x * cellSize,
-            y * cellSize,
-            cellSize,
-            cellSize
-        );
+        context.drawImage(texture, x * theme.size, y * theme.size);
     });
 }
 
-export function drawPiece(context: CanvasRenderingContext2D, piece: Piece, theme: BoardTheme, cellSize: number, opacity: number = 1) {
+export function drawPiece(context: CanvasRenderingContext2D, piece: Piece, source: BoardTheme, opacity: number = 1) {
     context.globalAlpha = opacity;
-    
-    const texture = theme.textures[piece.type];
-    
+
+    const texture = source.textures[piece.type];
+
     getBlocks(piece).forEach((block) => {
-        context.drawImage(
-            texture,
-            block.x * cellSize,
-            block.y * cellSize,
-            cellSize,
-            cellSize
-        );
+        context.drawImage(texture, block.x * source.size, block.y * source.size);
     });
 }
 

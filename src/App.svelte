@@ -1,39 +1,23 @@
 <script lang="ts">
     import Board from "./lib/Board.svelte";
     import NavigationBar from "./lib/NavigationBar.svelte";
-    import { getSpawnPosition } from "./lib/pieces";
+    import { getSpawnPosition, pieceNames } from "./lib/pieces";
     import SettingsTab from "./lib/SettingsTab.svelte";
     import Toolbar from "./lib/Toolbar.svelte";
     import { board } from "./lib/stores/board";
     import type { Piece } from "./lib/types";
 
-    let cellSize = 24;
     let piece = getSpawnPosition(0);
+    let selected: string;
 
-    // Responsive cell size
-    let boardContainerWidth: number;
-    let boardContainerHeight: number;
-
-    $: if (boardContainerWidth && boardContainerHeight) {
-        const padding = 0.8;
-        const width = boardContainerWidth * padding;
-        const height = boardContainerHeight * padding;
-
-        cellSize = Math.min(
-            Math.floor(width / $board.cols),
-            Math.floor(height / $board.rows),
-        );
+    $: if (selected) {
+        const color = pieceNames.indexOf(selected);
+        piece = getSpawnPosition(color);
     }
 
-    // Input handling
     function onKeyDown({ key, ctrlKey }: KeyboardEvent) {
         if (key === "z" && ctrlKey) board.undo();
         if (key === "Backspace") board.clear();
-    }
-
-    function onPieceSelected(event: CustomEvent<number>) {
-        const color = event.detail;
-        piece = getSpawnPosition(color);
     }
 
     function onPiecePlaced({ detail }: CustomEvent<Piece>) {
@@ -43,41 +27,38 @@
 
 <svelte:window on:keydown={onKeyDown} />
 
-<NavigationBar />
 <div id="background" />
 <div id="container">
-    <Toolbar on:selected={onPieceSelected} />
-    <Board
-        board={$board}
-        {cellSize}
-        {piece}
-        on:place={onPiecePlaced}
-        bind:clientWidth={boardContainerWidth}
-        bind:clientHeight={boardContainerHeight}
-    />
+    <NavigationBar />
+    <Toolbar bind:selected />
+    <Board board={$board} {piece} on:place={onPiecePlaced} />
     <SettingsTab />
 </div>
 
 <style>
-    :global(body) {
-        display: flex;
-        flex-direction: column;
-    }
-
     #container {
-        flex: 1;
+        display: grid;
+
         width: 100%;
-        height: calc(100% - 4.2rem);
-        display: flex;
-        flex-direction: row;
+        height: 100%;
+
+        grid-template-areas:
+            "navbar  navbar navbar"
+            "toolbar board  settings";
+
+        grid-template-rows: min-content auto;
+        grid-template-columns: min-content 3fr 4fr;
     }
 
     #background {
         position: absolute;
+        top: 0;
+        left: 0;
+
         z-index: -1;
 
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
 
         background-image: url("https://images.unsplash.com/photo-1673217611194-579eee2a6ff8?auto=format&fit=crop&w=2070&q=80");
         background-size: cover;

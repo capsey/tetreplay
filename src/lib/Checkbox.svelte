@@ -14,13 +14,13 @@
         cursor: pointer;
 
         width: 100%;
-        margin: 8px 0 16px 0;
+        padding: 0.4rem 0 0.4rem 0;
 
-        transition: text-shadow var(--hover-duration);
+        transition: text-shadow var(--hover-duration) var(--hover-timing);
     }
 
     label input {
-        transition: box-shadow var(--hover-duration);
+        transition: box-shadow var(--hover-duration) var(--hover-timing);
     }
 
     label:hover {
@@ -32,7 +32,7 @@
     }
 
     span {
-        margin: 3px 18px 0 18px;
+        margin: auto 0.8rem auto 0.8rem;
         user-select: none;
     }
 
@@ -41,17 +41,16 @@
         appearance: none;
         cursor: pointer;
 
-        width: 32px;
-        height: 32px;
+        width: 1.8rem;
+        height: 1.8rem;
         margin: 0;
 
-        border: 3px solid white;
-        border-right-style: dashed;
-        border-bottom-style: dashed;
+        border: var(--border) white;
+        border-style: solid dashed dashed solid;
 
         background-color: transparent;
 
-        transition: background-color var(--hover-duration);
+        transition: background-color var(--hover-duration) var(--hover-timing);
     }
 
     input:hover {
@@ -69,13 +68,19 @@
         background-size: contain;
         background-repeat: no-repeat;
 
-        transform: translateY(-1px) rotate(45deg);
+        translate: 0 calc(var(--border) * -0.5);
         opacity: 0;
 
-        transition: opacity var(--hover-duration);
+        --delay: var(--hover-duration);
+        transition: rotate var(--hover-duration) var(--hover-timing),
+            opacity var(--hover-duration) var(--hover-timing) var(--delay);
     }
 
     input:checked::after {
         opacity: 1;
+        rotate: 45deg;
+
+        transition: opacity var(--hover-duration) var(--hover-timing),
+            rotate var(--hover-duration) var(--hover-timing) var(--delay);
     }
 </style>
