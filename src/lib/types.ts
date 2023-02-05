@@ -1,8 +1,31 @@
+import type { Matrix } from "./utilities";
+
 // Types related to the game logic
-export type Block = {
-    x: number,
-    y: number,
-};
+export class BoardState {
+    constructor(private blocks: Matrix<number>) { }
+
+    public get rows(): number {
+        return this.blocks.rows;
+    }
+
+    public get cols(): number {
+        return this.blocks.cols;
+    }
+
+    public isEmpty(x: number, y: number): boolean {
+        return x >= 0 && x < this.cols && y >= 0 && y < this.rows && this.blocks.get(x, y) < 0;
+    }
+
+    public forEach(callback: (x: number, y: number, value: number) => void) {
+        this.blocks.forEach(callback);
+    }
+
+    public update(callback: (data: Matrix<number>) => void): BoardState {
+        const blocks = this.blocks.copy();
+        callback(blocks);
+        return new BoardState(blocks);
+    }
+}
 
 export type Piece = {
     x: number,
@@ -10,6 +33,13 @@ export type Piece = {
     type: number,
     rotation: number
 };
+
+export type Block = {
+    x: number,
+    y: number,
+};
+
+export type ColoredBlock = Block & { color: number };
 
 // Utility functions
 export function shiftPiece(piece: Piece, dx: number, dy: number): Piece {

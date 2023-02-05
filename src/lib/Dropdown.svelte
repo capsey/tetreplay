@@ -1,8 +1,9 @@
 <script lang="ts">
     export let selected: any;
+    export let tooltip: string = undefined;
 </script>
 
-<select class="select-element" bind:value={selected} on:change>
+<select title={tooltip} class="select-element" bind:value={selected} on:change>
     <slot />
 </select>
 

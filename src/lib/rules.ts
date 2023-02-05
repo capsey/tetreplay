@@ -1,6 +1,5 @@
 import { getBlocks } from "./pieces";
 import { type Block, type Piece, shiftPiece, rotatePiece } from "./types";
-import type { Matrix } from "./utilities";
 
 export enum Input {
     SHIFT_RIGHT,
@@ -12,59 +11,55 @@ export enum Input {
     ROTATE_180
 }
 
-export function collides(blocks: Block[], board: Matrix<number>): boolean {
-    return !blocks.every(block => {
-        if (block.x >= 0 && block.x < board.cols && block.y >= 0 && block.y < board.rows) {
-            return board.getItem(block.x, block.y) < 0;
-        }
+type Predicate = (x: number, y: number) => boolean;
 
-        return false;
-    });
+export function collides(blocks: Block[], isEmpty: Predicate): boolean {
+    return !blocks.every(block => isEmpty(block.x, block.y));
 }
 
-export function applyInput(piece: Piece, board: Matrix<number>, input: Input): Piece | null {
+export function applyInput(piece: Piece, isEmpty: Predicate, input: Input): Piece | null {
     switch (input) {
         case Input.SHIFT_RIGHT:
-            return shiftRight(piece, board);
+            return shiftRight(piece, isEmpty);
 
         case Input.SHIFT_LEFT:
-            return shiftLeft(piece, board);
+            return shiftLeft(piece, isEmpty);
 
         case Input.SOFT_DROP:
-            return softDrop(piece, board);
+            return softDrop(piece, isEmpty);
 
         case Input.HARD_DROP:
-            return hardDrop(piece, board);
+            return hardDrop(piece, isEmpty);
 
         case Input.ROTATE_CLOCKWISE:
-            return rotate(piece, board, 1);
+            return rotate(piece, isEmpty, 1);
 
         case Input.ROTATE_COUNTER_CLOCKWISE:
-            return rotate(piece, board, -1);
+            return rotate(piece, isEmpty, -1);
 
         case Input.ROTATE_180:
-            return rotate(piece, board, 2);
+            return rotate(piece, isEmpty, 2);
     }
 }
 
-export function shiftRight(piece: Piece, board: Matrix<number>): Piece | null {
+export function shiftRight(piece: Piece, isEmpty: Predicate): Piece | null {
     const newPiece = shiftPiece(piece, 1, 0);
-    return collides(getBlocks(newPiece), board) ? null : newPiece;
+    return collides(getBlocks(newPiece), isEmpty) ? null : newPiece;
 }
 
-export function shiftLeft(piece: Piece, board: Matrix<number>): Piece | null {
+export function shiftLeft(piece: Piece, isEmpty: Predicate): Piece | null {
     const newPiece = shiftPiece(piece, -1, 0);
-    return collides(getBlocks(newPiece), board) ? null : newPiece;
+    return collides(getBlocks(newPiece), isEmpty) ? null : newPiece;
 }
 
-export function softDrop(piece: Piece, board: Matrix<number>): Piece | null {
+export function softDrop(piece: Piece, isEmpty: Predicate): Piece | null {
     const newPiece = shiftPiece(piece, 0, 1);
-    return collides(getBlocks(newPiece), board) ? null : newPiece;
+    return collides(getBlocks(newPiece), isEmpty) ? null : newPiece;
 }
 
-export function hardDrop(piece: Piece, board: Matrix<number>): Piece {
+export function hardDrop(piece: Piece, isEmpty: Predicate): Piece {
     while (true) {
-        const newPiece = softDrop(piece, board);
+        const newPiece = softDrop(piece, isEmpty);
 
         if (newPiece) {
             piece = newPiece;
@@ -74,8 +69,8 @@ export function hardDrop(piece: Piece, board: Matrix<number>): Piece {
     }
 }
 
-export function rotate(piece: Piece, board: Matrix<number>, direction: number): Piece | null {
+export function rotate(piece: Piece, isEmpty: Predicate, direction: number): Piece | null {
     // TODO: Add SRS
     const newPiece = rotatePiece(piece, direction);
-    return collides(getBlocks(newPiece), board) ? null : newPiece;
+    return collides(getBlocks(newPiece), isEmpty) ? null : newPiece;
 }

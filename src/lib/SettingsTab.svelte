@@ -27,16 +27,25 @@
     </p>
     <section>
         <p>Replay settings:</p>
-        <Checkbox bind:checked={$shouldClearLines}>
-            Automatically clear lines
+        <Checkbox
+            tooltip="Automatically clear complete lines when placing pieces"
+            bind:checked={$shouldClearLines}
+        >
+            Clear complete lines
         </Checkbox>
-        <Checkbox bind:checked={$onlyAllowDoable}>
-            Only possible placements
+        <Checkbox
+            tooltip="Only allow place placements that are doable in actual gameplay"
+            bind:checked={$onlyAllowDoable}
+        >
+            Only doable placements
         </Checkbox>
     </section>
     <section>
         <p>Board theme:</p>
-        <Dropdown bind:selected={$themeSource}>
+        <Dropdown
+            tooltip="Theme of the blocks on the board"
+            bind:selected={$themeSource}
+        >
             {#each themes as theme}
                 <option value={theme}>{theme.name}</option>
             {/each}

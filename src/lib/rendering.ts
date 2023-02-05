@@ -1,26 +1,43 @@
 import { getBlocks } from "./pieces";
-import type { Piece } from "./types";
-import type { Matrix } from "./utilities";
+import type { BoardState, ColoredBlock, Piece } from "./types";
 
 // Drawing functions
-export function drawBoard(context: CanvasRenderingContext2D, board: Matrix<number>, theme: BoardTheme, opacity: number = 1) {
+export function drawBoard(context: CanvasRenderingContext2D, board: BoardState, theme: BoardTheme, opacity: number = 1) {
     context.globalAlpha = opacity;
-    board.forEach((x, y, value) => {
-        if (value < 0) return;
 
-        const texture = theme.textures[value];
+    board.forEach((x, y, color) => {
+        if (color < 0) return;
+
+        const texture = theme.textures[color];
         context.drawImage(texture, x * theme.size, y * theme.size);
     });
 }
 
-export function drawPiece(context: CanvasRenderingContext2D, piece: Piece, source: BoardTheme, opacity: number = 1) {
+export function drawPiece(context: CanvasRenderingContext2D, piece: Piece, theme: BoardTheme, opacity: number = 1) {
     context.globalAlpha = opacity;
 
-    const texture = source.textures[piece.type];
+    const texture = theme.textures[piece.type];
 
-    getBlocks(piece).forEach((block) => {
-        context.drawImage(texture, block.x * source.size, block.y * source.size);
+    getBlocks(piece).forEach(({ x, y }) => {
+        context.drawImage(texture, x * theme.size, y * theme.size);
     });
+}
+
+export type UnalignedBlock = ColoredBlock & { rotation: number };
+
+export function drawUnalignedBlock(context: CanvasRenderingContext2D, block: UnalignedBlock, theme: BoardTheme, opacity: number = 1, scale?: number) {
+    context.save();
+
+    context.translate(block.x, block.y);
+    context.rotate(block.rotation);
+
+    const texture = theme.textures[block.color];
+    const size = scale || theme.size;
+
+    context.globalAlpha = opacity;
+    context.drawImage(texture, size * -0.5, size * -0.5, size, size);
+
+    context.restore();
 }
 
 // Board theme related stuff

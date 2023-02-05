@@ -1,8 +1,9 @@
 <script lang="ts">
     export let checked = false;
+    export let tooltip: string = undefined;
 </script>
 
-<label>
+<label title={tooltip}>
     <input type="checkbox" bind:checked />
     <span><slot /></span>
 </label>
