@@ -69,20 +69,18 @@
 
     // Placing preview
     let preview: Piece | null;
-    let cursor = "inherit";
+    $: preview = collisionMap
+        .map((piece) => {
+            let { x, y } = getCenter(piece);
+            x -= mouseX;
+            y -= mouseY;
+            return { piece, distance: x * x + y * y };
+        })
+        .filter(({ distance }) => distance < 3 * 3)
+        .min(({ distance }) => distance)?.piece;
 
-    $: {
-        preview = collisionMap
-            .map((piece) => {
-                let { x, y } = getCenter(piece);
-                x -= mouseX;
-                y -= mouseY;
-                return { piece, distance: x * x + y * y };
-            })
-            .filter(({ distance }) => distance < 3 * 3)
-            .min(({ distance }) => distance)?.piece;
-        cursor = preview ? "pointer" : "inherit";
-    }
+    let cursor = "inherit";
+    $: cursor = preview ? "pointer" : "inherit";
 
     // Canvas animation
     const easing = (t: number) => Math.sqrt(1 - Math.pow(t - 1, 2));
@@ -105,8 +103,8 @@
     });
 
     // Input handling
-    let mouseX = 0;
-    let mouseY = 0;
+    let mouseX = -100;
+    let mouseY = -100;
 
     function updateMousePosition({ x, y }: MouseEvent) {
         const rect = boardCanvas.getBoundingClientRect();

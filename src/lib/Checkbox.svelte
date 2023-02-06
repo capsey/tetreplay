@@ -79,7 +79,7 @@
 
     input:checked::after {
         opacity: 1;
-        rotate: 45deg;
+        rotate: -45deg;
 
         transition: opacity var(--hover-duration) var(--hover-timing),
             rotate var(--hover-duration) var(--hover-timing) var(--delay);

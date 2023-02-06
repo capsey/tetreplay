@@ -48,9 +48,12 @@ export async function getTheme(source: BoardThemeSource): Promise<BoardTheme> {
 
     // Split the image into 7 squares
     const textures = [];
+    const sections = [
+        [0, 1], [5, 2], [1, 4], [1, 2], [3, 1], [3, 0], [0, 0]
+    ];
 
-    for (let i = 0; i < 7; i++) {
-        const subtexture = createImageBitmap(texture, i * source.size, 0, source.size, source.size);
+    for (let [i, j] of sections) {
+        const subtexture = createImageBitmap(texture, i * source.size, j * source.size, source.size, source.size);
         textures.push(subtexture);
     }
 
@@ -75,9 +78,9 @@ export const unloadedTheme: BoardTheme = { textures: unloadedTextures, size: 1 }
 
 // Built-in board themes
 export const themes: BoardThemeSource[] = [
-    { name: "Tetris 99", texture: "theme-99.png", size: 48 },
+    { name: "Puyo Puyo Tetris 2", texture: "theme-puyo.png", size: 36 },
     { name: "Tetris Party Deluxe", texture: "theme-party.png", size: 32 },
     { name: "TETR.IO", texture: "theme-tetrio.png", size: 48 },
-    { name: "NES", texture: "theme-nes.png", size: 8 },
-    { name: "SNES", texture: "theme-snes.png", size: 8 },
+    { name: "Super Tetris 3", texture: "theme-snes.png", size: 8 },
+    { name: "Tetris SEGA", texture: "theme-sega.png", size: 8 },
 ];
