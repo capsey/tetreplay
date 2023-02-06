@@ -1,11 +1,12 @@
 <script lang="ts">
-    import Board from "./lib/Board.svelte";
-    import NavigationBar from "./lib/NavigationBar.svelte";
     import { getSpawnPosition, pieceNames } from "./lib/pieces";
-    import SettingsTab from "./lib/SettingsTab.svelte";
-    import Toolbar from "./lib/Toolbar.svelte";
     import { board } from "./lib/stores/board";
     import type { Piece } from "./lib/types";
+
+    import Board from "./lib/Board.svelte";
+    import NavigationBar from "./lib/NavigationBar.svelte";
+    import SettingsTab from "./lib/SettingsTab.svelte";
+    import Toolbar from "./lib/Toolbar.svelte";
 
     let piece = getSpawnPosition(0);
     let selected: string;
@@ -46,7 +47,7 @@
             "toolbar board  settings";
 
         grid-template-rows: min-content auto;
-        grid-template-columns: min-content 3fr 4fr;
+        grid-template-columns: min-content 1fr 1fr;
     }
 
     #background {

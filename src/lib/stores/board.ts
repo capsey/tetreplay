@@ -1,22 +1,29 @@
 import { writable, get } from "svelte/store";
 import { getBlocks } from "../pieces";
-import { BoardState, type Block, type ColoredBlock, type Piece } from "../types";
+import { BoardState, type Block, type Piece } from "../types";
 import { Matrix } from "../utilities";
+import { event } from "./utilities";
 
 // Settings
 export const shouldClearLines = writable(true);
 export const onlyAllowDoable = writable(true);
 
+// Events
+type ColoredBlock = Block & { color: number };
+type LineClearEvent = { blocks: ColoredBlock[], points: number };
+
+export const lastClearedLines = event<LineClearEvent>({ blocks: [], points: 0 });
+
 // Board
 const rows = 22;
 const cols = 10;
 
-export const lastCleared = writable<ColoredBlock[]>([]);
 export const board = (() => {
     const initial = new BoardState(new Matrix(rows, cols, -1));
     const { subscribe, set, update } = writable(initial);
 
     function clearLines(data: Matrix<number>) {
+        let count = 0;
         let cleared: ColoredBlock[] = [];
 
         for (let i = 0; i < data.rows; i++) {
@@ -44,9 +51,11 @@ export const board = (() => {
                     data.set(j, k, value);
                 }
             }
+
+            count += 1;
         }
 
-        if (cleared.length > 0) lastCleared.set(cleared);
+        if (count > 0) lastClearedLines.emit({ blocks: cleared, points: count });
     }
 
     function placePiece(piece: Piece) {

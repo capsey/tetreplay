@@ -39,8 +39,6 @@ export type Block = {
     y: number,
 };
 
-export type ColoredBlock = Block & { color: number };
-
 // Utility functions
 export function shiftPiece(piece: Piece, dx: number, dy: number): Piece {
     return {

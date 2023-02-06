@@ -1,5 +1,5 @@
 import { getBlocks } from "./pieces";
-import type { BoardState, ColoredBlock, Piece } from "./types";
+import type { BoardState, Piece } from "./types";
 
 // Drawing functions
 export function drawBoard(context: CanvasRenderingContext2D, board: BoardState, theme: BoardTheme, opacity: number = 1) {
@@ -21,23 +21,6 @@ export function drawPiece(context: CanvasRenderingContext2D, piece: Piece, theme
     getBlocks(piece).forEach(({ x, y }) => {
         context.drawImage(texture, x * theme.size, y * theme.size);
     });
-}
-
-export type UnalignedBlock = ColoredBlock & { rotation: number };
-
-export function drawUnalignedBlock(context: CanvasRenderingContext2D, block: UnalignedBlock, theme: BoardTheme, opacity: number = 1, scale?: number) {
-    context.save();
-
-    context.translate(block.x, block.y);
-    context.rotate(block.rotation);
-
-    const texture = theme.textures[block.color];
-    const size = scale || theme.size;
-
-    context.globalAlpha = opacity;
-    context.drawImage(texture, size * -0.5, size * -0.5, size, size);
-
-    context.restore();
 }
 
 // Board theme related stuff

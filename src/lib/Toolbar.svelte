@@ -38,6 +38,10 @@
         box-shadow: 0 0 var(--shadow-radius) var(--shadow-color);
     }
 
+    form::-webkit-scrollbar {
+        display: none;
+    }
+
     input {
         appearance: none;
         cursor: pointer;

@@ -1,33 +1,46 @@
 <script lang="ts">
-    import { createEventDispatcher, onDestroy } from "svelte";
+    import { createEventDispatcher } from "svelte";
     import { tweened } from "svelte/motion";
-    import { cubicOut } from "svelte/easing";
-    import type { BoardState, ColoredBlock, Piece } from "./types";
+
     import { collides } from "./rules";
     import { getBlocks, getCenter } from "./pieces";
+    import { lastClearedLines } from "./stores/board";
+    import type { BoardState, Piece } from "./types";
+    import BoardRenderer from "./BoardRenderer.svelte";
+    import BoardAnimation from "./BoardAnimation.svelte";
     import { theme } from "./stores/preferences";
-    import {
-        drawBoard,
-        drawPiece,
-        drawUnalignedBlock,
-        type UnalignedBlock,
-    } from "./rendering";
-    import { lastCleared } from "./stores/board";
 
     // Component props
     export let board: BoardState;
     export let piece: Piece;
 
     let rotation: number = 0;
-
-    // Reset rotation when user selects another piece
-    $: if (piece) rotation = 0;
+    $: if (piece) rotation = 0; // Reset rotation when user selects another piece
 
     // Custom events
     const dispatcher = createEventDispatcher<{ place: Piece }>();
 
     function placePiece() {
-        if (previewPiece) dispatcher("place", previewPiece);
+        if (preview) dispatcher("place", preview);
+    }
+
+    // Canvas elements
+    let boardCanvas: HTMLCanvasElement;
+    let clearCanvas: HTMLCanvasElement;
+
+    let clearTransform: { x: number; y: number; scale: number };
+
+    $: if (boardCanvas && clearCanvas && cell) {
+        const boardRect = boardCanvas.getBoundingClientRect();
+        const clearRect = clearCanvas.getBoundingClientRect();
+
+        const border = (boardRect.width - cell * board.cols) / 2;
+
+        clearTransform = {
+            x: boardRect.x - clearRect.x + border,
+            y: boardRect.y - clearRect.y,
+            scale: cell,
+        };
     }
 
     // Collision map
@@ -55,159 +68,54 @@
     }
 
     // Placing preview
-    let previewPiece: Piece | null;
+    let preview: Piece | null;
     let cursor = "inherit";
 
-    $: previewPiece = collisionMap
-        .map((piece) => {
-            let { x, y } = getCenter(piece);
-            x -= mouseX;
-            y -= mouseY;
-            return { piece, distance: x * x + y * y };
-        })
-        .filter(({ distance }) => distance < 3 * 3)
-        .min(({ distance }) => distance)?.piece;
-
-    $: cursor = previewPiece && mouseOver ? "pointer" : "inherit";
-
-    // Canvas rendering
-    let canvas: HTMLCanvasElement;
-    let context: CanvasRenderingContext2D;
-
-    $: context = canvas?.getContext("2d");
-
-    $: if (context) {
-        // Reset canvas
-        canvas.width = $theme.size * board.cols;
-        canvas.height = $theme.size * board.rows;
-
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.imageSmoothingEnabled = false;
-
-        // Draw board cells
-        drawBoard(context, board, $theme);
-
-        // Draw preview piece
-        if (previewPiece && mouseOver) {
-            drawPiece(context, previewPiece, $theme, 0.25);
-        }
+    $: {
+        preview = collisionMap
+            .map((piece) => {
+                let { x, y } = getCenter(piece);
+                x -= mouseX;
+                y -= mouseY;
+                return { piece, distance: x * x + y * y };
+            })
+            .filter(({ distance }) => distance < 3 * 3)
+            .min(({ distance }) => distance)?.piece;
+        cursor = preview ? "pointer" : "inherit";
     }
 
-    // Line clear animation
-    type ClearedBlock = UnalignedBlock & {
-        opacity: number;
-        vr: number;
-        vx: number;
-        vy: number;
-    };
-
-    let clearCanvas: HTMLCanvasElement;
-    let clearContext: CanvasRenderingContext2D;
-    let clearBlocks: ClearedBlock[] = [];
-
-    $: clearContext = clearCanvas?.getContext("2d");
-
-    let translateProgress = tweened(0, { duration: 500, easing: cubicOut });
-    let translate = 0;
-
+    // Canvas animation
+    const easing = (t: number) => Math.sqrt(1 - Math.pow(t - 1, 2));
     const func = (x: number) => -4 * x * (x - 1);
 
-    $: translate = 0.66 * cell * func($translateProgress);
+    let translateProgress = tweened(0, { easing });
+    let translateAmplitude = 0;
+    let translate = 0;
 
-    const unsubscribe = lastCleared.subscribe((blocks) => {
-        if (!canvas) return;
+    $: translate = translateAmplitude * cell * func($translateProgress);
 
+    lastClearedLines.subscribe((event) => {
+        if (event.points <= 0) return;
+
+        const duration = 400 * Math.sqrt(event.points) + 200;
+
+        translateAmplitude = event.points / 4;
         translateProgress.set(0, { duration: 0 });
-        translateProgress.set(1);
-
-        const rect1 = canvas.getBoundingClientRect();
-        const border = (rect1.width - cell * board.cols) / 2;
-
-        const random = () => Math.random() - 0.5;
-        const newBlocks = blocks.map((block) => {
-            return {
-                ...block,
-                x: (block.x + 0.5) * cell + border,
-                y: (block.y + 0.5) * cell,
-                rotation: 0,
-                opacity: 1,
-                vr: random() * 20,
-                vx: random() * 100,
-                vy: random() * 100,
-            };
-        });
-        clearBlocks = [...clearBlocks, ...newBlocks];
-        requestAnimationFrame(renderClearedBlocks);
+        translateProgress.set(1, { duration });
     });
 
-    onDestroy(unsubscribe);
-
-    let time = performance.now();
-
-    function renderClearedBlocks() {
-        if (!clearBlocks || !clearCanvas || !clearContext) return;
-
-        // Calculate elapsed
-        const now = performance.now();
-        const elapsed = Math.min(now - time, 100) / 1000;
-
-        time = now;
-
-        // Reset canvas
-        clearCanvas.width = containerWidth;
-        clearCanvas.height = containerHeight;
-
-        clearContext.clearRect(0, 0, canvas.width, canvas.height);
-        clearContext.imageSmoothingEnabled = false;
-
-        const rect1 = canvas.getBoundingClientRect();
-        const rect2 = clearCanvas.getBoundingClientRect();
-
-        // Draw all blocks
-        clearContext.save();
-        clearContext.translate(rect1.x - rect2.x, rect1.y - rect2.y);
-
-        const gravity = cell * 20;
-        const fading = 3;
-
-        for (let i = clearBlocks.length - 1; i >= 0; i--) {
-            const block = clearBlocks[i];
-
-            block.x += block.vx * elapsed;
-            block.y += block.vy * elapsed;
-            block.vy += gravity * elapsed;
-            block.rotation += block.vr * elapsed;
-            block.opacity -= fading * elapsed;
-
-            if (block.opacity < 0) {
-                clearBlocks.remove(i);
-                continue;
-            }
-
-            drawUnalignedBlock(
-                clearContext,
-                block,
-                $theme,
-                block.opacity,
-                cell
-            );
-        }
-
-        clearContext.restore();
-
-        // Request another frame
-        requestAnimationFrame(renderClearedBlocks);
-    }
-
     // Input handling
-    let mouseOver = false;
     let mouseX = 0;
     let mouseY = 0;
 
     function updateMousePosition({ x, y }: MouseEvent) {
-        const rect = canvas.getBoundingClientRect();
+        const rect = boardCanvas.getBoundingClientRect();
         mouseX = (board.cols * (x - rect.left)) / rect.width;
         mouseY = (board.rows * (y - rect.top)) / rect.height;
+    }
+
+    function mouseOut() {
+        preview = null;
     }
 
     function mouseClick({ button }: MouseEvent) {
@@ -224,7 +132,7 @@
     }
 
     function keyboardInput({ key }: KeyboardEvent) {
-        const oldPiece = previewPiece || { ...piece, rotation };
+        const oldPiece = preview || { ...piece, rotation };
         let newPiece = oldPiece;
 
         switch (key) {
@@ -285,19 +193,18 @@
     let cell: number = 24;
 
     $: if (containerHeight) {
-        const padding = parseFloat(
-            window.getComputedStyle(container).getPropertyValue("padding")
-        );
-
         cell = Math.min(
-            (containerHeight - 2 * padding) / board.rows,
-            (containerWidth - 2 * padding) / board.cols
+            (0.9 * containerHeight) / board.rows,
+            (0.9 * containerWidth) / board.cols
         );
 
         // Increment for less pixel distortion
         // Unless it's too small for it to matter
-        const increment = 12;
-        if (cell > 24) cell = Math.floor(cell / increment) * increment;
+        const increment = $theme.size;
+
+        if (cell > increment) {
+            cell = Math.floor(cell / increment) * increment;
+        }
     }
 </script>
 
@@ -309,21 +216,23 @@
     <canvas
         id="board-canvas"
         tabindex={0}
-        style:width="{cell * board.cols}px"
-        style:height="{cell * board.rows}px"
-        style:translate="0 {translate}px"
+        style:--rows={board.rows}
+        style:--cols={board.cols}
+        style:--cell="{cell}px"
+        style:--offset="{translate}px"
         style:cursor
         on:mousemove={updateMousePosition}
         on:mousedown={mouseClick}
         on:keydown={keyboardInput}
         on:contextmenu|preventDefault
-        on:mouseover={() => (mouseOver = true)}
-        on:focus={() => (mouseOver = true)}
-        on:mouseout={() => (mouseOver = false)}
-        on:blur={() => (mouseOver = false)}
-        bind:this={canvas}
+        on:mouseout={mouseOut}
+        on:blur={mouseOut}
+        bind:this={boardCanvas}
     />
     <canvas id="clear-canvas" bind:this={clearCanvas} />
+
+    <BoardRenderer {board} {preview} canvas={boardCanvas} />
+    <BoardAnimation transform={clearTransform} canvas={clearCanvas} />
 </div>
 
 <style>
@@ -338,22 +247,25 @@
 
         min-width: 0;
         min-height: 0;
-
-        padding: 1.2rem;
     }
 
     #board-canvas {
         margin: auto;
         box-sizing: content-box;
 
+        width: calc(var(--cell) * var(--cols));
+        height: calc(var(--cell) * var(--rows));
+
         border: calc(1.5 * var(--border)) white;
         border-style: none solid solid solid;
 
         background-image: url("assets/board-background.png");
         background-size: contain;
-        image-rendering: pixelated;
+        image-rendering: crisp-edges;
 
         box-shadow: 0 0 var(--shadow-radius) var(--shadow-color);
+
+        translate: 0 var(--offset);
     }
 
     #clear-canvas {
