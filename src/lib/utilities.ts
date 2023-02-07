@@ -1,3 +1,6 @@
+import { onDestroy } from "svelte";
+import { writable, type StartStopNotifier, type Subscriber } from "svelte/store";
+
 // Utility functions for built-in Array type
 declare global {
     interface Array<T> {
@@ -25,6 +28,17 @@ Array.prototype.remove = function <T>(this: Array<T>, index: number): void {
     }
 
     this.pop();
+}
+
+// Utility functions for built-in Map type
+declare global {
+    interface Map<K, V> {
+        remap<W>(fn: (value: V, key: K) => W): Map<K, W>;
+    }
+}
+
+Map.prototype.remap = function <K, V, W>(this: Map<K, V>, fn: (value: V, key: K) => W): Map<K, W> {
+    return new Map([...this.entries()].map(([key, value]) => [key, fn(value, key)]));
 }
 
 // Two dimensional array of generic type
@@ -66,4 +80,45 @@ export class Matrix<T> {
             }
         }
     }
+}
+
+// Observable event
+export function event<T>(value?: T, start?: StartStopNotifier<T>) {
+    const store = writable<T>(value, start);
+
+    return {
+        subscribe: (run: Subscriber<T>) => {
+            // Subscribe and unsubscribe automatically
+            // Only run inside of a svelte component
+            const unsubscribe = store.subscribe(run);
+            onDestroy(unsubscribe);
+        },
+        emit: (value: T) => {
+            // Emits event with a given value as a message
+            store.set(value);
+        },
+    };
+}
+
+// Animation frame handler
+export function frameHangler(func: (elapsed: number) => boolean, elapsedLimit: number = 1 / 10) {
+
+    let lastFrame: number;
+    let lastTime: number;
+
+    const callback = () => {
+        const time = performance.now() / 1000;
+        const elapsed = (time - lastTime);
+        lastTime = time;
+
+        if (func(Math.min(elapsed, elapsedLimit))) {
+            lastFrame = requestAnimationFrame(callback);
+        }
+    };
+
+    return () => {
+        cancelAnimationFrame(lastFrame);
+        lastTime = performance.now() / 1000;
+        lastFrame = requestAnimationFrame(callback);
+    };
 }

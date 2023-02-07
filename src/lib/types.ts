@@ -30,14 +30,17 @@ export class BoardState {
 export type Piece = {
     x: number,
     y: number,
-    type: number,
-    rotation: number
+    rotation: number,
+    color: PieceType,
 };
 
 export type Block = {
     x: number,
     y: number,
 };
+
+export type PieceType = (typeof pieceTypes)[number];
+export const pieceTypes = ["i-piece", "j-piece", "l-piece", "o-piece", "s-piece", "t-piece", "z-piece"] as const;
 
 // Utility functions
 export function shiftPiece(piece: Piece, dx: number, dy: number): Piece {
@@ -53,4 +56,10 @@ export function rotatePiece(piece: Piece, amount: number): Piece {
         ...piece,
         rotation: (piece.rotation + amount + 4) % 4,
     };
+}
+
+export function getTextureIndex(piece: PieceType, offset: number): number {
+    // This is needed for individual textures per block
+    // for more customizable themes
+    return pieceTypes.indexOf(piece) + offset;
 }

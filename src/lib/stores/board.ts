@@ -1,8 +1,8 @@
 import { writable, get } from "svelte/store";
 import { getBlocks } from "../pieces";
-import { BoardState, type Block, type Piece } from "../types";
+import { BoardState, getTextureIndex, type Block, type Piece } from "../types";
 import { Matrix } from "../utilities";
-import { event } from "./utilities";
+import { event } from "../utilities";
 
 // Settings
 export const shouldClearLines = writable(true);
@@ -61,7 +61,10 @@ export const board = (() => {
     function placePiece(piece: Piece) {
         update((board) => board.update(data => {
             // Place all the pieces
-            getBlocks(piece).forEach(({ x, y }) => data.set(x, y, piece.type));
+            getBlocks(piece).forEach(({ x, y }) => {
+                const texture = getTextureIndex(piece.color, 0);
+                data.set(x, y, texture);
+            });
 
             // Check for line clears if needed
             if (get(shouldClearLines)) clearLines(data);

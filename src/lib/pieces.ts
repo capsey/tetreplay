@@ -1,75 +1,77 @@
-import type { Piece, Block } from "./types";
+import type { Block, Piece, PieceType } from "./types";
+import "./utilities";
 
 function createBlock(x: number, y: number): Block {
     return { x, y };
 }
 
-const pieces = [
-    [ // I piece
+const pieces = new Map<PieceType, Block[][]>([
+    ["i-piece", [
         [createBlock(0, 0), createBlock(1, 0), createBlock(2, 0), createBlock(3, 0)],
         [createBlock(2, -1), createBlock(2, 0), createBlock(2, 1), createBlock(2, 2)],
         [createBlock(0, 1), createBlock(1, 1), createBlock(2, 1), createBlock(3, 1)],
         [createBlock(1, -1), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
-    ],
-    [ // J piece
+    ]],
+    ["j-piece", [
         [createBlock(0, 0), createBlock(0, 1), createBlock(1, 1), createBlock(2, 1)],
         [createBlock(1, 0), createBlock(1, 1), createBlock(1, 2), createBlock(2, 0)],
         [createBlock(0, 1), createBlock(1, 1), createBlock(2, 1), createBlock(2, 2)],
         [createBlock(0, 2), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
-    ],
-    [ // L piece
+    ]],
+    ["l-piece", [
         [createBlock(0, 1), createBlock(1, 1), createBlock(2, 1), createBlock(2, 0)],
         [createBlock(1, 0), createBlock(1, 1), createBlock(1, 2), createBlock(2, 2)],
         [createBlock(0, 1), createBlock(0, 2), createBlock(1, 1), createBlock(2, 1)],
         [createBlock(0, 0), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
-    ],
-    [ // O piece
+    ]],
+    ["o-piece", [
         [createBlock(0, 0), createBlock(0, 1), createBlock(1, 0), createBlock(1, 1)],
         [createBlock(0, 0), createBlock(0, 1), createBlock(1, 0), createBlock(1, 1)],
         [createBlock(0, 0), createBlock(0, 1), createBlock(1, 0), createBlock(1, 1)],
         [createBlock(0, 0), createBlock(0, 1), createBlock(1, 0), createBlock(1, 1)],
-    ],
-    [ // S piece
+    ]],
+    ["s-piece", [
         [createBlock(0, 1), createBlock(1, 1), createBlock(1, 0), createBlock(2, 0)],
         [createBlock(1, 0), createBlock(1, 1), createBlock(2, 1), createBlock(2, 2)],
         [createBlock(0, 2), createBlock(1, 2), createBlock(1, 1), createBlock(2, 1)],
         [createBlock(0, 0), createBlock(0, 1), createBlock(1, 1), createBlock(1, 2)],
-    ],
-    [ // T piece
+    ]],
+    ["t-piece", [
         [createBlock(0, 1), createBlock(1, 1), createBlock(1, 0), createBlock(2, 1)],
         [createBlock(1, 0), createBlock(1, 1), createBlock(1, 2), createBlock(2, 1)],
         [createBlock(0, 1), createBlock(1, 1), createBlock(1, 2), createBlock(2, 1)],
         [createBlock(0, 1), createBlock(1, 0), createBlock(1, 1), createBlock(1, 2)],
-    ],
-    [ // S piece
+    ]],
+    ["z-piece", [
         [createBlock(0, 0), createBlock(1, 0), createBlock(1, 1), createBlock(2, 1)],
         [createBlock(1, 2), createBlock(1, 1), createBlock(2, 1), createBlock(2, 0)],
         [createBlock(0, 1), createBlock(1, 1), createBlock(1, 2), createBlock(2, 2)],
         [createBlock(0, 2), createBlock(0, 1), createBlock(1, 1), createBlock(1, 0)],
-    ]];
+    ]]
+]);
 
-const pieceCenters = pieces.map(rotations => {
+const pieceCenters = pieces.remap((rotations) => {
     return rotations.map(blocks => {
         const x = blocks.reduce((acc, curr) => acc + curr.x, 0) / blocks.length;
         const y = blocks.reduce((acc, curr) => acc + curr.y, 0) / blocks.length;
 
-        return { x: x + 0.5, y: y + 0.5 };
+        return { x: x + 0.5, y: y + 0.5 } as Block;
     });
 });
 
-export function getSpawnPosition(type: number): Piece {
+export function getSpawnPosition(color: PieceType): Piece {
     return {
-        x: type !== 3 ? 3 : 4, // Only O piece spawns at 4
-        y: type !== 0 ? 0 : 1, // Only I piece spawns at 1
-        type,
+        x: color !== "o-piece" ? 3 : 4, // Only O piece spawns at 4
+        y: color !== "i-piece" ? 0 : 1, // Only I piece spawns at 1
+        color,
         rotation: 0,
     };
 }
 
 export function getBlocks(piece: Piece): Block[] {
-    const spawnBlocks = pieces[piece.type][piece.rotation];
+    const blocks = pieces.get(piece.color)[piece.rotation];
 
-    return spawnBlocks.map(block => {
+    return blocks.map(block => {
         return {
             x: block.x + piece.x,
             y: block.y + piece.y,
@@ -78,7 +80,7 @@ export function getBlocks(piece: Piece): Block[] {
 }
 
 export function getCenter(piece: Piece) {
-    const spawnCenter = pieceCenters[piece.type][piece.rotation];
+    const spawnCenter = pieceCenters.get(piece.color)[piece.rotation];
 
     return {
         x: spawnCenter.x + piece.x,
@@ -94,5 +96,3 @@ export function pieceEquals(a: Piece, b: Piece) {
 
     return as.every((x, i) => x.x === bs[i].x && x.y === bs[i].y);
 }
-
-export const pieceNames = ["i-piece", "j-piece", "l-piece", "o-piece", "s-piece", "t-piece", "z-piece"];
