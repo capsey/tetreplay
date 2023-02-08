@@ -1,7 +1,7 @@
 <script lang="ts">
     import { lastClearedLines } from "./stores/board";
     import { theme } from "./stores/preferences";
-    import { frameHangler } from "./stores/utilities";
+    import { frameHangler } from "./utilities";
     import type { Block } from "./types";
 
     // Canvas

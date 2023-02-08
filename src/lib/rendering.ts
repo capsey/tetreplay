@@ -1,5 +1,5 @@
 import { getBlocks } from "./pieces";
-import type { BoardState, Piece } from "./types";
+import { getTextureIndex, type BoardState, type Piece } from "./types";
 
 // Drawing functions
 export function drawBoard(context: CanvasRenderingContext2D, board: BoardState, theme: BoardTheme, opacity: number = 1) {
@@ -16,9 +16,8 @@ export function drawBoard(context: CanvasRenderingContext2D, board: BoardState, 
 export function drawPiece(context: CanvasRenderingContext2D, piece: Piece, theme: BoardTheme, opacity: number = 1) {
     context.globalAlpha = opacity;
 
-    const texture = theme.textures[piece.type];
-
     getBlocks(piece).forEach(({ x, y }) => {
+        const texture = theme.textures[getTextureIndex(piece.color, 0)];
         context.drawImage(texture, x * theme.size, y * theme.size);
     });
 }

@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { pieceNames } from "./pieces";
+    import { type PieceType, pieceTypes } from "./types";
 
-    export let selected = "i-piece";
+    export let selected: PieceType;
 
     function onKeyDown({ key }: KeyboardEvent) {
-        if (/^[1-7]$/.test(key)) selected = pieceNames[parseInt(key) - 1];
+        if (/^[1-7]$/.test(key)) selected = pieceTypes[parseInt(key) - 1];
     }
 </script>
 

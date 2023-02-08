@@ -1,19 +1,18 @@
 <script lang="ts">
-    import { getSpawnPosition, pieceNames } from "./lib/pieces";
+    import { getSpawnPosition } from "./lib/pieces";
     import { board } from "./lib/stores/board";
-    import type { Piece } from "./lib/types";
+    import type { PieceType, Piece } from "./lib/types";
 
     import Board from "./lib/Board.svelte";
     import NavigationBar from "./lib/NavigationBar.svelte";
     import SettingsTab from "./lib/SettingsTab.svelte";
     import Toolbar from "./lib/Toolbar.svelte";
 
-    let piece = getSpawnPosition(0);
-    let selected: string;
+    let piece = getSpawnPosition("i-piece");
+    let selected: PieceType;
 
     $: if (selected) {
-        const color = pieceNames.indexOf(selected);
-        piece = getSpawnPosition(color);
+        piece = getSpawnPosition(selected);
     }
 
     function onKeyDown({ key }: KeyboardEvent) {
